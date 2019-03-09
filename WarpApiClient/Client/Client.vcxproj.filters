@@ -22,6 +22,12 @@
     <Filter Include="GameFramework">
       <UniqueIdentifier>{3e2eaf91-a8f1-4b89-aafe-d4925852b1f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderModel">
+      <UniqueIdentifier>{f37d74be-d123-4e03-b8b6-d894856a8332}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{1334b0b6-4b2f-488a-b304-7959ee468803}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -42,6 +48,24 @@
     <ClInclude Include="GameFramework.h">
       <Filter>GameFramework</Filter>
     </ClInclude>
+    <ClInclude Include="BaseModel.h">
+      <Filter>RenderModel</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseActor.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Pawn.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="TransparentModel.h">
+      <Filter>RenderModel</Filter>
+    </ClInclude>
+    <ClInclude Include="BitModel.h">
+      <Filter>RenderModel</Filter>
+    </ClInclude>
+    <ClInclude Include="StretchModel.h">
+      <Filter>RenderModel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -52,6 +76,24 @@
     </ClCompile>
     <ClCompile Include="GameFramework.cpp">
       <Filter>GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseModel.cpp">
+      <Filter>RenderModel</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseActor.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Pawn.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="TransparentModel.cpp">
+      <Filter>RenderModel</Filter>
+    </ClCompile>
+    <ClCompile Include="BitModel.cpp">
+      <Filter>RenderModel</Filter>
+    </ClCompile>
+    <ClCompile Include="StretchModel.cpp">
+      <Filter>RenderModel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

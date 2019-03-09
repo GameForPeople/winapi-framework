@@ -9,16 +9,35 @@
 */
 
 #include "stdafx.h"
-#include "GameFramework.h"
 
+#include "Pawn.h"
+#include "TransparentModel.h"
+#include "StretchModel.h"
+
+#include "GameFramework.h"
 
 WGameFramework::WGameFramework()
 {
-	Clear();
+	// 편한 디버깅 환경을 제공하기 위해, 개발 모드일 때, 콘솔창을 켜줍니다.
+#ifdef _DEV_MODE_
+#ifdef UNICODE
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console") 
+#else
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console") 
+#endif
+
+	std::cout << "현재 DEV MODE가 활성화 되었습니다. \n";
+#endif
 }
 
 WGameFramework::~WGameFramework()
 {
+	delete originPlayerModel;
+	delete backgroundModel;
+
+	/* auto */
+	//playerCharacter.reset();
+	//backgroundActor.reset();
 }
 
 void WGameFramework::Reset()
@@ -32,17 +51,39 @@ void WGameFramework::Clear()
 void WGameFramework::Create(HWND hWnd)
 {
 	m_hWnd = hWnd;
+
+	//build Object
+	originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
+	backgroundModel = new StretchModel(L"Resource/Image/Image_Background.png");
+	
+	playerCharacter = std::make_unique<Pawn>(originPlayerModel,
+		RenderData(0, 0, 100, 100, RGB(255, 0, 0)));
+	
+	backgroundActor = std::make_unique<BaseActor>(backgroundModel, 
+		RenderData(0,0, 1000, 770));
 }
 
 void WGameFramework::OnDraw(HDC hdc)
 {
-	static int x = 10;
-	x++;
-	Rectangle(hdc, x + 10, 10, x + 100, 100);
+	backgroundActor->Render(hdc);
+	playerCharacter->Render(hdc);
 }
 
 void WGameFramework::OnUpdate(const float frameTime)
 {
+}
+
+void WGameFramework::Mouse(UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+#ifdef _DEV_MODE_
+	switch (iMessage)
+	{
+		case WM_LBUTTONDOWN:
+			std::cout << "MouseX : " << LOWORD(lParam) << " MouseY : " << HIWORD(lParam) << "\n";
+		default:
+			break;
+	}
+#endif
 }
 
 void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -50,23 +91,25 @@ void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 	switch (iMessage)
 	{
 		case WM_KEYDOWN:
-		{
-			if (wParam == VK_Q)
+			switch (wParam)
 			{
-				SendMessage(m_hWnd, WM_DESTROY, 0, 0);
-				return;
+				case static_cast<WPARAM>(VK_KEY::VK_Q) :
+					SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+					break;
+
+				case static_cast<WPARAM>(VK_UP) :
+				case static_cast<WPARAM>(VK_DOWN) :
+				case static_cast<WPARAM>(VK_LEFT) :
+				case static_cast<WPARAM>(VK_RIGHT) :
+					playerCharacter->MoveWithDirection(static_cast<DIRECTION>((static_cast<BYTE>(wParam) - VK_LEFT)));
+					break;
 			}
-		}
-		break;
-		
+			break;
 
 		case WM_KEYUP:
-		{
+			break;
 
-		}
-		break;
-
-
+		default:
+			break;
 	}
-
 }

@@ -12,13 +12,12 @@
 #include "Client.h"
 #include "GameFramework.h"
 
-#define MAX_LOADSTRING 100
-
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
-WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
-WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
-static WGameFramework gGameFramework;
+WCHAR szTitle[GLOBAL_DEFINE::MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
+WCHAR szWindowClass[GLOBAL_DEFINE::MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
+
+static std::unique_ptr<WGameFramework> gGameFramework;
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -31,33 +30,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
- // 편한 디버깅 환경을 제공하기 위해, 디버그 모드일 때, 콘솔창을 켜줍니다.
-#ifdef _DEBUG
-#ifdef UNICODE
-#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console") 
-#else
-#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console") 
-#endif
-#endif
-
-    UNREFERENCED_PARAMETER(hPrevInstance);
+	gGameFramework = std::make_unique<WGameFramework>();
+    
+	UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: 여기에 코드를 입력합니다.
-
     // 전역 문자열을 초기화합니다.
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_CLIENT, szWindowClass, MAX_LOADSTRING);
+    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, GLOBAL_DEFINE::MAX_LOADSTRING);
+    LoadStringW(hInstance, IDC_CLIENT, szWindowClass, GLOBAL_DEFINE::MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
     // 응용 프로그램 초기화를 수행합니다:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
-    }
+    if (!InitInstance (hInstance, nCmdShow)) return FALSE;
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CLIENT));
-
     MSG msg;
 
 	while (true)
@@ -72,12 +58,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 	}
-
-	gGameFramework.Clear();
-
+	
     return (int) msg.wParam;
 }
-
 
 
 //
@@ -93,13 +76,13 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.style          = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
+    wcex.cbClsExtra     = NULL;
+    wcex.cbWndExtra     = NULL;
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WARP));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_CLIENT);
+	wcex.lpszMenuName	= NULL;//MAKEINTRESOURCEW(IDC_CLIENT);
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_WARP));
 
@@ -120,13 +103,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, FRAME_WIDTH, FRAME_HEIGHT, nullptr, nullptr, hInstance, nullptr);
+   HWND hWnd = CreateWindowW(
+	   szWindowClass,
+	   szTitle,
+	   WS_OVERLAPPEDWINDOW,
+	   CW_USEDEFAULT, 
+	   0, 
+	   GLOBAL_DEFINE::FRAME_WIDTH,
+	   GLOBAL_DEFINE::FRAME_HEIGHT,
+	   nullptr,
+	   nullptr,
+	   hInstance,
+	   nullptr
+   );
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+   if (!hWnd) return FALSE;
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -150,44 +141,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 		case WM_CREATE:
-			{
-				gGameFramework.Create(hWnd);
-				SetTimer(hWnd, MAIN_TIMER, MAIN_TIEMR_FRAME, NULL);
-			}
-			break;
+		{
+			gGameFramework->Create(hWnd);
+			SetTimer(hWnd, GLOBAL_DEFINE::MAIN_TIMER, GLOBAL_DEFINE::MAIN_TIMER_FRAME, NULL);
+		}
+		break;
 
 		case WM_PAINT:
 		{
+#pragma region [FOR DOUBLE BUFFER]
 			PAINTSTRUCT ps;
 			HDC mainHDC = BeginPaint(hWnd, &ps);
-			HBITMAP GLay = CreateCompatibleBitmap(mainHDC, FRAME_WIDTH, FRAME_HEIGHT);
+			HBITMAP GLay = CreateCompatibleBitmap(mainHDC, GLOBAL_DEFINE::FRAME_WIDTH, GLOBAL_DEFINE::FRAME_HEIGHT);
 			HDC GLayDC = CreateCompatibleDC(mainHDC);
 			SelectObject(GLayDC, GLay);
+#pragma endregion
 
-			gGameFramework.OnDraw(GLayDC);
+			gGameFramework->OnDraw(GLayDC);
 
-			BitBlt(mainHDC, 0, 0, FRAME_WIDTH, FRAME_HEIGHT, GLayDC, 0, 0, SRCCOPY);
+#pragma region [FOR DOUBLE BUFFER]
+			BitBlt(mainHDC, 0, 0, GLOBAL_DEFINE::FRAME_WIDTH, GLOBAL_DEFINE::FRAME_HEIGHT, GLayDC, 0, 0, SRCCOPY);
 			DeleteDC(GLayDC);
 			DeleteObject(GLay);
 			EndPaint(hWnd, &ps);
+#pragma endregion
 		}
 		break;
 
 		case WM_TIMER:
 		{
-			gGameFramework.OnUpdate();
+			gGameFramework->OnUpdate();
 			InvalidateRgn(hWnd, NULL, false);
 		}
 		break;
-		
+
+		case WM_LBUTTONDOWN:
+		{
+			gGameFramework->Mouse(message, wParam, lParam);
+		}
+		break;
 
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 		{
-			gGameFramework.KeyBoard(message, wParam, lParam);
+			gGameFramework->KeyBoard(message, wParam, lParam);
 		}
 		break;
-
 
 		case WM_DESTROY:
 		{	
