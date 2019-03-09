@@ -10,14 +10,40 @@
 
 #pragma once
 
-#define MAIN_TIMER			1	
-#define MAIN_TIEMR_FRAME	17 // 60FPS
+#ifdef _DEBUG
+	#define _DEV_MODE_
+#endif
 
-#define FRAME_WIDTH			1280
-#define FRAME_HEIGHT		720
+#define		_NORETURN			[[noreturn]]
+#define		_NODISCARD			[[nodiscard]]
+#define		_DEPRECATED			[[deprecated]]
+#define		_MAYBE_UNUSED		[[maybe_unused]]
+#define		_FALLTHROUGH		[[fallthrough]]
+
+#define		_INLINE				__inline
+
+namespace GLOBAL_DEFINE
+{
+	constexpr UINT8	MAIN_TIMER{ 1 };
+	constexpr UINT8	MAIN_TIMER_FRAME{ 17 };
+
+	constexpr UINT16 FRAME_WIDTH{ 1000 };
+	constexpr UINT16 FRAME_HEIGHT{ 800 };
+
+	constexpr UINT8 MAX_LOADSTRING{ 100 };
+}
+
+// Direction
+enum class DIRECTION : BYTE
+{
+	LEFT = 0,
+	UP = 1,
+	RIGHT = 2,
+	DOWN = 3
+};
 
 // KeyBoard
-enum VK_KEY
+enum class VK_KEY
 {
 	VK_0 = 48,
 	VK_1 = 49,
@@ -56,4 +82,4 @@ enum VK_KEY
 	VK_Y,
 	VK_Z
 };
-// KeyBoard
+
