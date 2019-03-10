@@ -75,6 +75,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>\Client\Code\PCH;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -107,6 +108,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <CompileAsWinRT>
       </CompileAsWinRT>
+      <AdditionalIncludeDirectories>Client\Code\PCH;.\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,42 +152,42 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BaseActor.h" />
-    <ClInclude Include="BaseModel.h" />
-    <ClInclude Include="BitModel.h" />
-    <ClInclude Include="Client.h" />
-    <ClInclude Include="Define.h" />
-    <ClInclude Include="GameFramework.h" />
-    <ClInclude Include="Pawn.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StretchModel.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="TransparentModel.h" />
+    <ClInclude Include="Code\Define\Define.h" />
+    <ClInclude Include="Code\Define\Resource.h" />
+    <ClInclude Include="Code\Define\targetver.h" />
+    <ClInclude Include="Code\GameFramework\GameFrameWork.h" />
+    <ClInclude Include="Code\Main\Client.h" />
+    <ClInclude Include="Code\Object\BaseActor.h" />
+    <ClInclude Include="Code\Object\Pawn.h" />
+    <ClInclude Include="Code\PCH\stdafx.h" />
+    <ClInclude Include="Code\RenderModel\BaseModel.h" />
+    <ClInclude Include="Code\RenderModel\BitModel.h" />
+    <ClInclude Include="Code\RenderModel\StretchModel.h" />
+    <ClInclude Include="Code\RenderModel\TransparentModel.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BaseActor.cpp" />
-    <ClCompile Include="BaseModel.cpp" />
-    <ClCompile Include="BitModel.cpp" />
-    <ClCompile Include="Client.cpp" />
-    <ClCompile Include="GameFramework.cpp" />
-    <ClCompile Include="Pawn.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    <ClCompile Include="Code\GameFramework\GameFrameWork.cpp" />
+    <ClCompile Include="Code\Main\Client.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Client\Code\PCH;.\</AdditionalIncludeDirectories>
     </ClCompile>
-    <ClCompile Include="StretchModel.cpp" />
-    <ClCompile Include="TransparentModel.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Client.rc" />
+    <ClCompile Include="Code\Object\BaseActor.cpp" />
+    <ClCompile Include="Code\Object\Pawn.cpp" />
+    <ClCompile Include="Code\PCH\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Code\RenderModel\BaseModel.cpp" />
+    <ClCompile Include="Code\RenderModel\BitModel.cpp" />
+    <ClCompile Include="Code\RenderModel\StretchModel.cpp" />
+    <ClCompile Include="Code\RenderModel\TransparentModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Client.ico" />
     <Image Include="small.ico" />
     <Image Include="Warp.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Code\Define\Client.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

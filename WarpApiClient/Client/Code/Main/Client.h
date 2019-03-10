@@ -10,4 +10,4 @@
 
 #pragma once
 
-#include "resource.h"
+#include "../Define/Resource.h"

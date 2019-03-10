@@ -1,5 +1,6 @@
 #include "stdafx.h"
-#include "StretchModel.h"
+
+#include "../RenderModel/StretchModel.h"
 
 StretchModel::StretchModel(const std::wstring& inResourcePath)
 	: BaseModel(inResourcePath)

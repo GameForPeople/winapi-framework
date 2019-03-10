@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BaseActor.h"
+#include "../Object/BaseActor.h"
 
 class BaseModel;
 

@@ -1,5 +1,6 @@
 #include "stdafx.h"
-#include "BaseModel.h"
+
+#include "../RenderModel/BaseModel.h"
 
 BaseModel::BaseModel(const std::wstring inResourcePath)
 {

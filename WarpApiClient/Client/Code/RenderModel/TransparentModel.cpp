@@ -1,5 +1,6 @@
 #include "stdafx.h"
-#include "TransparentModel.h"
+
+#include "../RenderModel/TransparentModel.h"
 
 TransparentModel::TransparentModel(const std::wstring& inResourcePath)
 	: BaseModel(inResourcePath)

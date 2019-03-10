@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BaseModel.h"
+#include "../RenderModel/BaseModel.h"
 
 class TransparentModel final : public BaseModel
 {
