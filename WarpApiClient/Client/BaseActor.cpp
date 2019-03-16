@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-#include "../RenderModel/BaseModel.h"
-#include "../Object/BaseActor.h"
+#include "BaseModel.h"
+#include "BaseActor.h"
 
 BaseActor::BaseActor(BaseModel* const inBaseModel) noexcept
 	: renderComponent(inBaseModel), renderData()

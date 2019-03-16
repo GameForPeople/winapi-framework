@@ -1,7 +1,7 @@
 #include "stdafx.h"
+#include "BaseModel.h"
 
-#include "../RenderModel/BaseModel.h"
-#include "../Object/Pawn.h"
+#include "Pawn.h"
 
 Pawn::Pawn(BaseModel* const inBaseModel, const RenderData& inRenderData,
 	const UINT8 inXPosition, const UINT8 inYPosition) 

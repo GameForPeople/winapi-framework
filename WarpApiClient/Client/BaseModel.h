@@ -83,12 +83,12 @@ struct RenderData
 	~RenderData() = default;
 
 	RenderData(const UINT16 inXPosition = 0, const UINT16 inYPosition = 0) noexcept
-		: xPosition(inXPosition), yPosition(inYPosition), xSize(), ySize(), rgbColor()
+		: xPosition(inXPosition), yPosition(inYPosition), xSize(), ySize()
 	{};
 
 	RenderData(const UINT16 inXPosition, const UINT16 inYPosition,
 		const UINT16 inXSize, const UINT16 inYSize) noexcept
-		: xPosition(inXPosition), yPosition(inYPosition), xSize(inXSize), ySize(inYSize), rgbColor()
+		: xPosition(inXPosition), yPosition(inYPosition), xSize(inXSize), ySize(inYSize)
 	{};
 
 	RenderData(const UINT16 inXPosition, const UINT16 inYPosition,

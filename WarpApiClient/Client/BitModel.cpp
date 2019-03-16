@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "../RenderModel/BitModel.h"
+#include "BitModel.h"
 
 BitModel::BitModel(const std::wstring& inResourcePath)
 	: BaseModel(inResourcePath)

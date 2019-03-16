@@ -10,19 +10,13 @@
 
 #include "stdafx.h"
 
-#include "../Object/Pawn.h"
+#include "Pawn.h"
+#include "TransparentModel.h"
+#include "StretchModel.h"
 
-#include "../RenderModel/StretchModel.h"
-#include "../RenderModel/TransparentModel.h"
+#include "GameFramework.h"
 
-#include "../GameFramework/GameFrameWork.h"
-
-WGameFramework::WGameFramework() noexcept
-	: m_hWnd()
-	, originPlayerModel(nullptr)
-	, backgroundModel(nullptr)
-	, backgroundActor(nullptr)
-	, playerCharacter(nullptr)
+WGameFramework::WGameFramework()
 {
 	// 편한 디버깅 환경을 제공하기 위해, 개발 모드일 때, 콘솔창을 켜줍니다.
 #ifdef _DEV_MODE_
@@ -63,7 +57,7 @@ void WGameFramework::Create(HWND hWnd)
 	backgroundModel = new StretchModel(L"Resource/Image/Image_Background.png");
 	
 	playerCharacter = std::make_unique<Pawn>(originPlayerModel,
-		RenderData(0, 0, 100, 95, RGB(255, 0, 0)));
+		RenderData(0, 0, 100, 100, RGB(255, 0, 0)));
 	
 	backgroundActor = std::make_unique<BaseActor>(backgroundModel, 
 		RenderData(0,0, 1000, 770));

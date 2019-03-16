@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../RenderModel/BaseModel.h"
+#include "BaseModel.h"
 
 class StretchModel final : public BaseModel
 {

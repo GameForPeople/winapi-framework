@@ -9,9 +9,8 @@
 */
 
 #include "stdafx.h"
-#include "../GameFramework/GameFrameWork.h"
-
-#include "../Main/Client.h"
+#include "Client.h"
+#include "GameFramework.h"
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
