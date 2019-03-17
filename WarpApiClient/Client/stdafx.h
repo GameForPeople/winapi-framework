@@ -18,7 +18,12 @@
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용을 Windows 헤더에서 제외합니다.
+#define _WINSOCK_DEPRECATED_NO_WARNINGS	// inet_addr
+
 #include <windows.h>
+#pragma comment(lib, "ws2_32")
+#pragma comment(lib, "wininet.lib")
+#include <WinSock2.h>
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -33,3 +38,15 @@
 
 #include "Define.h"
 #include "GameFramework.h"
+
+namespace GLOBAL_UTIL {
+	namespace BIT_CONVERTER {
+		_NODISCARD BYTE GetLeft4Bit(const BYTE inByte) noexcept;
+		_NODISCARD BYTE GetRight4Bit(const BYTE inByte) noexcept;
+	}
+
+	namespace ERROR_HANDLING {
+		_NORETURN void ERROR_QUIT(const WCHAR *msg);
+		/*_DEPRECATED*/ void ERROR_DISPLAY(const CHAR *msg);
+	}
+}

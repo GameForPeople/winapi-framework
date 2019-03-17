@@ -35,6 +35,14 @@ void Pawn::MoveWithDirection(DIRECTION inDirection)
 	UpdateRenderData();
 }
 
+void Pawn::SetPosition(const std::pair<UINT8, UINT8> inPosition)
+{
+	xPosition = inPosition.first;
+	yPosition = inPosition.second;
+
+	UpdateRenderData();
+}
+
 void Pawn::UpdateRenderData()
 {
 	renderData->xPosition = xPosition * BLOCK_WIDTH_SIZE;

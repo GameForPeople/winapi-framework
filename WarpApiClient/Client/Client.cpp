@@ -30,7 +30,42 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-	gGameFramework = std::make_unique<WGameFramework>();
+	// 편한 디버깅 환경을 제공하기 위해, 개발 모드일 때, 콘솔창을 켜줍니다. 
+	//	-> 과제 2 변경사항으로 항상 콘솔창을 켜줍니다.
+#ifdef UNICODE
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console") 
+#else
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console") 
+#endif
+	gGameFramework = std::make_unique<WGameFramework>(
+		[/* void */]() noexcept(false) -> const std::string
+			{
+				std::cout << "\n"
+					<< "	희망하시는 IP 주소를 선택하세요. \n"
+					<< "		1. Local Host (127.0.0.1) \n"
+					<< "		2. 직접 입력 \n"
+					<< "			==> ";
+
+				int inputtedIPType{};
+				std::cin >> inputtedIPType;
+
+				if (inputtedIPType == 1) { system("cls"); return "127.0.0.1"; }
+				if (inputtedIPType == 2)
+				{
+					std::cout << "\n"
+						<< "	IP 주소를 입력해주세요. : ";
+
+					std::string inputtedIP{};
+					std::cin >> inputtedIP;
+
+					system("cls");
+
+					return inputtedIP;
+				}
+				
+				throw ERROR;
+			}()
+		);
     
 	UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);

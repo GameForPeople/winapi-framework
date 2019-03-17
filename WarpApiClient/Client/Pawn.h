@@ -13,7 +13,8 @@ public:
 
 public:
 	void MoveWithDirection(DIRECTION inDirection);
-
+	void SetPosition(const std::pair<UINT8, UINT8>);
+	
 private:
 	void UpdateRenderData();
 

@@ -28,6 +28,9 @@
     <Filter Include="Object">
       <UniqueIdentifier>{1334b0b6-4b2f-488a-b304-7959ee468803}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NetworkManager">
+      <UniqueIdentifier>{9c96bcf4-29e1-4a86-8d86-244f20eb74c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -66,6 +69,12 @@
     <ClInclude Include="StretchModel.h">
       <Filter>RenderModel</Filter>
     </ClInclude>
+    <ClInclude Include="NetworkManager.h">
+      <Filter>NetworkManager</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketType.h">
+      <Filter>Defnie</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -94,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="StretchModel.cpp">
       <Filter>RenderModel</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkManager.cpp">
+      <Filter>NetworkManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
