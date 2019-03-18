@@ -47,7 +47,7 @@ void WGameFramework::Create(HWND hWnd)
 
 	//build Object
 	originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
-	backgroundModel = new StretchModel(L"Resource/Image/Image_Background.png");
+	backgroundModel = new StretchModel(L"Resource/Image/Image_Background_2.png");
 	
 	playerCharacter = std::make_unique<Pawn>(originPlayerModel,
 		RenderData(0, 0, 100, 100, RGB(255, 0, 0)));

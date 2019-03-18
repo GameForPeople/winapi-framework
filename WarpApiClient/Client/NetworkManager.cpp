@@ -50,7 +50,7 @@ std::pair<UINT8, UINT8> NetworkManager::SendMoveData(const DIRECTION inDirection
 	if (int retVal = recv(socket, dataBuffer, 2, NULL)
 		; retVal == SOCKET_ERROR)	GLOBAL_UTIL::ERROR_HANDLING::ERROR_QUIT(L"Recv에 실패하였습니다. 클라이언트를 종료합니다. \n");
 
-	std::cout << "[RECV] Packet를 전송받았습니다. : " << (int)(dataBuffer[0]) <<" X : " << (int)(GLOBAL_UTIL::BIT_CONVERTER::GetLeft4Bit(dataBuffer[1])) << " , y : " << (int)(GLOBAL_UTIL::BIT_CONVERTER::GetRight4Bit(dataBuffer[1])) << "\n";
+	std::cout << "[RECV] Packet를 전송받았습니다. : " << (int)(dataBuffer[0]) <<" X : " << (int)(GLOBAL_UTIL::BIT_CONVERTER::GetLeft4Bit(dataBuffer[1])) << " , y : " << (int)(GLOBAL_UTIL::BIT_CONVERTER::GetRight4Bit(dataBuffer[1])) << "\n\n";
 
 	return std::make_pair(GLOBAL_UTIL::BIT_CONVERTER::GetLeft4Bit(dataBuffer[1]) , GLOBAL_UTIL::BIT_CONVERTER::GetRight4Bit(dataBuffer[1]));
 }
