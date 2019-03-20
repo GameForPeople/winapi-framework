@@ -4,7 +4,7 @@
 #include "Pawn.h"
 
 Pawn::Pawn(BaseModel* const inBaseModel, const RenderData& inRenderData,
-	const UINT8 inXPosition, const UINT8 inYPosition) 
+	const UINT8 inXPosition, const UINT8 inYPosition)
 	: BaseActor(inBaseModel, inRenderData)
 	, xPosition(inXPosition), yPosition(inYPosition)
 {

@@ -20,6 +20,7 @@
 
 WGameFramework::WGameFramework(const std::string_view& inIPAddress)
 	: networkManager(std::make_unique<NetworkManager>(inIPAddress))
+	, tickCount(0)
 {
 }
 
@@ -27,6 +28,7 @@ WGameFramework::~WGameFramework()
 {
 	delete originPlayerModel;
 	delete backgroundModel;
+	delete originOtherPlayerModel;
 
 	/* auto */
 	//playerCharacter.reset();
@@ -47,10 +49,15 @@ void WGameFramework::Create(HWND hWnd)
 
 	//build Object
 	originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
-	backgroundModel = new StretchModel(L"Resource/Image/Image_Background_2.png");
+	originOtherPlayerModel = new TransparentModel(L"Resource/Image/Image_OtherCharacter.png");
+	backgroundModel = new StretchModel(L"Resource/Image/Image_Background.png");
 	
 	playerCharacter = std::make_unique<Pawn>(originPlayerModel,
 		RenderData(0, 0, 100, 100, RGB(255, 0, 0)));
+	
+	for( int i = 0; i < otherPlayerArr.size(); ++i)
+		otherPlayerArr[i] = std::make_unique<Pawn>(originOtherPlayerModel,
+			RenderData(0, 0, 100, 100, RGB(255, 0, 0)), false);
 	
 	backgroundActor = std::make_unique<BaseActor>(backgroundModel, 
 		RenderData(0,0, 1000, 770));
@@ -58,12 +65,22 @@ void WGameFramework::Create(HWND hWnd)
 
 void WGameFramework::OnDraw(HDC hdc)
 {
+	// Caution! Render Sort!
+
 	backgroundActor->Render(hdc);
+
+	for (auto iter = otherPlayerArr.cbegin(); iter != otherPlayerArr.cend(); ++iter) (*iter)->Render(hdc);
+
 	playerCharacter->Render(hdc);
 }
 
 void WGameFramework::OnUpdate(const float frameTime)
 {
+	if (++tickCount == 30)
+	{
+		SetCharactersLocation(networkManager->SendVoidUpdate(), false);
+		tickCount = 0;
+	}
 }
 
 void WGameFramework::Mouse(UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -90,13 +107,12 @@ void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 				SendMessage(m_hWnd, WM_DESTROY, 0, 0);
 				break;
 
-			case static_cast<WPARAM>(VK_UP) :
-			case static_cast<WPARAM>(VK_DOWN) :
-			case static_cast<WPARAM>(VK_LEFT) :
-			case static_cast<WPARAM>(VK_RIGHT) :
-					// 이거 구조 너무...오바야..
-					playerCharacter->SetPosition(networkManager->SendMoveData(static_cast<DIRECTION>(static_cast<BYTE>(wParam) - VK_LEFT)));
-				//playerCharacter->MoveWithDirection(static_cast<DIRECTION>((static_cast<BYTE>(wParam) - VK_LEFT)));
+				case static_cast<WPARAM>(VK_UP) :
+				case static_cast<WPARAM>(VK_DOWN) :
+				case static_cast<WPARAM>(VK_LEFT) :
+				case static_cast<WPARAM>(VK_RIGHT) :
+					// 현재는 블로킹이며, Send 후 Recv 과정 고정.
+					SetCharactersLocation(networkManager->SendMoveData(static_cast<DIRECTION>(static_cast<BYTE>(wParam) - VK_LEFT)), true);
 				break;
 			}
 			break;
@@ -107,4 +123,19 @@ void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 		default:
 			break;
 	}
+}
+
+void WGameFramework::SetCharactersLocation(const std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_OTHER_CLIENT + 1>, int> inCont, const bool inMyCharacterInclude)
+{
+	auto[pRecvCharacterPositionArr, connectedPlayerCount] = inCont;
+
+	if(inMyCharacterInclude)
+		playerCharacter->SetPosition(pRecvCharacterPositionArr[0]);
+
+	for (int i = 0; i < connectedPlayerCount - 1; ++i)
+	{
+		otherPlayerArr[i]->SetPosition(pRecvCharacterPositionArr[i + 1]);
+		otherPlayerArr[i]->SetRender(true);
+	}
+	for (int i = connectedPlayerCount - 1; i < GLOBAL_DEFINE::MAX_OTHER_CLIENT + 1; ++i) otherPlayerArr[i]->SetRender(false);
 }

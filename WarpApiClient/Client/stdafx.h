@@ -36,6 +36,10 @@
 #include <string>
 #include <string_view> 
 
+#include <bitset>	// debug
+
+#include <array>
+
 #include "Define.h"
 #include "GameFramework.h"
 

@@ -25,12 +25,14 @@
 namespace GLOBAL_DEFINE
 {
 	constexpr UINT8	MAIN_TIMER{ 1 };
-	constexpr UINT8	MAIN_TIMER_FRAME{ 17 };
+	constexpr UINT8 MAIN_TIMER_FRAME{ 17 };
 
 	constexpr UINT16 FRAME_WIDTH{ 1000 };
 	constexpr UINT16 FRAME_HEIGHT{ 800 };
 
 	constexpr UINT8 MAX_LOADSTRING{ 100 };
+
+	constexpr USHORT MAX_OTHER_CLIENT{ 10 };
 }
 
 // Direction

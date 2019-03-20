@@ -4,12 +4,12 @@
 #include "BaseActor.h"
 
 BaseActor::BaseActor(BaseModel* const inBaseModel) noexcept
-	: renderComponent(inBaseModel), renderData()
+	: renderComponent(inBaseModel), renderData(), isRender(true)
 {
 }
 
-BaseActor::BaseActor(BaseModel* const inBaseModel, const RenderData& inRenderData) noexcept
-	: renderComponent(inBaseModel), renderData(new RenderData(inRenderData))
+BaseActor::BaseActor(BaseModel* const inBaseModel, const RenderData& inRenderData, bool inIsRender /* = true*/) noexcept
+	: renderComponent(inBaseModel), renderData(new RenderData(inRenderData)), isRender(inIsRender)
 {
 }
 
@@ -19,5 +19,5 @@ BaseActor::~BaseActor()
 
 void BaseActor::Render(HDC pHDC)
 {
-	renderComponent->Render(pHDC, renderData);
+	if(isRender) renderComponent->Render(pHDC, renderData);
 }
