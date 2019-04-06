@@ -10,6 +10,8 @@
 
 #include "stdafx.h"
 
+#include "ClientDefine.h"
+
 #include "NetworkManager.h"
 
 #include "Pawn.h"
@@ -125,7 +127,7 @@ void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-void WGameFramework::SetCharactersLocation(const std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_OTHER_CLIENT + 1>, int> inCont, const bool inMyCharacterInclude)
+void WGameFramework::SetCharactersLocation(const std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> inCont, const bool inMyCharacterInclude)
 {
 	auto[pRecvCharacterPositionArr, connectedPlayerCount] = inCont;
 
@@ -137,5 +139,5 @@ void WGameFramework::SetCharactersLocation(const std::pair<std::array<std::pair<
 		otherPlayerArr[i]->SetPosition(pRecvCharacterPositionArr[i + 1]);
 		otherPlayerArr[i]->SetRender(true);
 	}
-	for (int i = connectedPlayerCount - 1; i < GLOBAL_DEFINE::MAX_OTHER_CLIENT + 1; ++i) otherPlayerArr[i]->SetRender(false);
+	for (int i = connectedPlayerCount - 1; i < GLOBAL_DEFINE::MAX_CLIENT + 1; ++i) otherPlayerArr[i]->SetRender(false);
 }

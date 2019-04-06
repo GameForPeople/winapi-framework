@@ -1,38 +1,83 @@
 #include "stdafx.h"
 
-#include "PacketType.h"
+#include "Define.h"
+
+#include "MemoryUnit.h"
+
+#include "GameFrameWork.h"
 #include "NetworkManager.h"
 
-NetworkManager::NetworkManager(const std::string_view& inIPAddress)
-	: ipAddress(inIPAddress)
+NetworkManager::NetworkManager(const std::string_view& inIPAddress, WGameFramework* InGameFramework)
+	: ipAddress(inIPAddress), pGameFramework(InGameFramework)
 {
-	InitNetwork();
-
 	for (int i = 0; i < 10; ++i)
 	{
 		recvCharacterPoistionArr[i] = {0, 0};
 	}
+
+	InitNetwork();
 }
 
 void NetworkManager::InitNetwork()
 {
 	using namespace GLOBAL_UTIL::ERROR_HANDLING;
 
+	// 1. 윈속 초기화
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) ERROR_QUIT(L"WSAStartup()");
 
-	if (this->socket = ::socket(AF_INET, SOCK_STREAM, 0)
-		; socket == INVALID_SOCKET) ERROR_QUIT(L"socket()");
+	// 2. 입출력 완료 포트 생성
+	if (hIOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0)
+		; hIOCP == NULL) ERROR_QUIT(TEXT("Make_WorkerThread()"));
 
+	// 3. 워커 쓰레드 생성 및 IOCP 등록
+	workerThread = std::thread{ };
+
+	// 4. 소캣 생성
+	if (this->socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED)
+		; socket == INVALID_SOCKET) ERROR_QUIT(L"Create_Socket()");
+
+	// 5. 클라이언트 정보 구조체 객체 설정.
 	ZeroMemory(&serverAddr, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = inet_addr(ipAddress.c_str());
-	serverAddr.sin_port = htons(SERVER_PORT);
+	serverAddr.sin_port = htons(GLOBAL_DEFINE::SERVER_PORT);
 
-	if(int retVal = connect(socket, (SOCKADDR *)&serverAddr, sizeof(serverAddr))
+	// 6. 커넥트!!!!!!!!! 가자아아아아아아아앗!!!!!!!
+	if (int retVal = connect(socket, (SOCKADDR*)& serverAddr, sizeof(serverAddr))
 		; retVal == SOCKET_ERROR) ERROR_QUIT(L"bind()");
 }
 
-std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_OTHER_CLIENT + 1>, int> NetworkManager::SendVoidUpdate()
+DWORD WINAPI NetworkManager::StartWorkerThread(LPVOID arg)
+{
+	NetworkManager* pNetworkManager = static_cast<NetworkManager*>(arg);
+	pNetworkManager->WorkerThreadFunction();
+
+	return 0;
+};
+
+void NetworkManager::WorkerThreadFunction()
+{
+	int retVal{};
+	DWORD cbTransferred;
+	unsigned long long clientKey;
+	MemoryUnit* pMemoryUnit;
+
+	while (7)
+	{
+		retVal = GetQueuedCompletionStatus(
+			hIOCP,
+			&cbTransferred,
+			&clientKey,
+			reinterpret_cast<LPOVERLAPPED*>(&pMemoryUnit),
+			INFINITE
+		);
+
+	}
+}
+
+
+
+std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> NetworkManager::SendVoidUpdate()
 {
 	dataBuffer[0] = static_cast<BYTE>(PACKET_TYPE::VOID_UPDATE);
 	dataBuffer[1] = 0x00;	/* Void */
@@ -54,7 +99,7 @@ std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_OTHER_CLIENT + 
 	return std::make_pair(recvCharacterPoistionArr, recvOtherPlayerCount);
 }
 
-std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_OTHER_CLIENT + 1>, int> NetworkManager::SendMoveData(const DIRECTION inDirection)
+std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> NetworkManager::SendMoveData(const DIRECTION inDirection)
 {
 	dataBuffer[0] = static_cast<BYTE>(PACKET_TYPE::MOVE);
 	dataBuffer[1] = static_cast<BYTE>(inDirection);

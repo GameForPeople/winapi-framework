@@ -10,6 +10,7 @@
 
 #include "stdafx.h"
 #include "Client.h"
+#include "ClientDefine.h"
 #include "GameFramework.h"
 
 // 전역 변수:
@@ -63,6 +64,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					return inputtedIP;
 				}
 				
+				std::cout << " 정의되지 않은 커맨드 입니다. 클라이언트를 종료합니다. ";
 				throw ERROR;
 			}()
 		);

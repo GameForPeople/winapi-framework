@@ -38,10 +38,18 @@
 
 #include <bitset>	// debug
 
+#include <thread>	//thread
+
 #include <array>
 
 #include "Define.h"
 #include "GameFramework.h"
+
+#define		_NORETURN			[[noreturn]]
+#define		_NODISCARD			[[nodiscard]]
+#define		_DEPRECATED			[[deprecated]]
+#define		_MAYBE_UNUSED		[[maybe_unused]]
+#define		_FALLTHROUGH		[[fallthrough]]
 
 namespace GLOBAL_UTIL {
 	namespace BIT_CONVERTER {
