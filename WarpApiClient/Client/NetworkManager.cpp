@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include "ClientDefine.h"
 #include "Define.h"
 
 #include "MemoryUnit.h"
@@ -9,13 +10,28 @@
 
 NetworkManager::NetworkManager(const std::string_view& inIPAddress, WGameFramework* InGameFramework)
 	: ipAddress(inIPAddress), pGameFramework(InGameFramework)
+	//, sendMemoryUnit(false)
+	, recvMemoryUnit(nullptr)
+	, hIOCP()
+	, loadedBuf()
+	, loadedSize()
+	, serverAddr()
+	, socket()
+	, wsa()
 {
-	for (int i = 0; i < 10; ++i)
-	{
-		recvCharacterPoistionArr[i] = {0, 0};
-	}
+	//for (int i = 0; i < 10; ++i)
+	//{
+	//	recvCharacterPoistionArr[i] = {0, 0};
+	//}
+
+	recvMemoryUnit = new MemoryUnit(true);
 
 	InitNetwork();
+}
+
+NetworkManager::~NetworkManager()
+{
+	pGameFramework = nullptr;
 }
 
 void NetworkManager::InitNetwork()
@@ -30,7 +46,7 @@ void NetworkManager::InitNetwork()
 		; hIOCP == NULL) ERROR_QUIT(TEXT("Make_WorkerThread()"));
 
 	// 3. 워커 쓰레드 생성 및 IOCP 등록
-	workerThread = std::thread{ };
+	workerThread = std::thread{ StartWorkerThread, (LPVOID)this };
 
 	// 4. 소캣 생성
 	if (this->socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED)
@@ -72,90 +88,156 @@ void NetworkManager::WorkerThreadFunction()
 			INFINITE
 		);
 
-	}
-}
-
-
-
-std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> NetworkManager::SendVoidUpdate()
-{
-	dataBuffer[0] = static_cast<BYTE>(PACKET_TYPE::VOID_UPDATE);
-	dataBuffer[1] = 0x00;	/* Void */
-
-	if (int retVal = send(socket, dataBuffer, NetworkManager::SEND_BUFFER_SIZE, NULL)
-		; retVal == SOCKET_ERROR)	GLOBAL_UTIL::ERROR_HANDLING::ERROR_QUIT(L"Send에 실패하였습니다. 클라이언트를 종료합니다. \n");
-
-	{
-		//std::cout << "[Send] Void Packet를 전송했습니다. : \n";
-	}
-
-	if (int retVal = recv(socket, dataBuffer, NetworkManager::RECV_BUFFER_SIZE, NULL)
-		; retVal == SOCKET_ERROR)	GLOBAL_UTIL::ERROR_HANDLING::ERROR_QUIT(L"Recv에 실패하였습니다. 클라이언트를 종료합니다. \n");
-	
-	{
-		//std::cout << "[RECV] Packet를 전송받았습니다. : 100 \n\n";
-	}
-	const int recvOtherPlayerCount = ProcessOtherCharacterPosition(1);
-	return std::make_pair(recvCharacterPoistionArr, recvOtherPlayerCount);
-}
-
-std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> NetworkManager::SendMoveData(const DIRECTION inDirection)
-{
-	dataBuffer[0] = static_cast<BYTE>(PACKET_TYPE::MOVE);
-	dataBuffer[1] = static_cast<BYTE>(inDirection);
-
-	if (int retVal = send(socket, dataBuffer, NetworkManager::SEND_BUFFER_SIZE, NULL)
-		; retVal == SOCKET_ERROR)	GLOBAL_UTIL::ERROR_HANDLING::ERROR_QUIT(L"Send에 실패하였습니다. 클라이언트를 종료합니다. \n");
-
-	{
-		std::cout << "[Send] Move Packet를 전송했습니다. : " << [/*void*/](const DIRECTION dir) noexcept -> std::string
+		if (retVal == 0 || cbTransferred == 0)
 		{
-			if (dir == DIRECTION::LEFT) return "LEFT";
-			if (dir == DIRECTION::RIGHT) return "RIGHT";
-			if (dir == DIRECTION::UP) return "UP";
-			if (dir == DIRECTION::DOWN) return "DOWN";
+			// 아니! 클라이언트에서 네트워크 오류가 났다고??
+			std::cout << "[오류] 네트워크 오류가 발생했습니다. 클라이언트를 종료합니다." << std::endl;
+			break;
+		}
 
-		}(inDirection)
-			<< "\n";
+		pMemoryUnit->isRecv == true
+			? AfterRecv(cbTransferred)
+			: AfterSend(pMemoryUnit);
 	}
-
-	if (int retVal = recv(socket, dataBuffer, NetworkManager::RECV_BUFFER_SIZE, NULL)
-		; retVal == SOCKET_ERROR)	GLOBAL_UTIL::ERROR_HANDLING::ERROR_QUIT(L"Recv에 실패하였습니다. 클라이언트를 종료합니다. \n");
-
-	{
-		std::cout << "[RECV] Packet를 전송받았습니다. : " << (int)(dataBuffer[0]) << "원본 : " << std::bitset<8>(dataBuffer[1])
-			<< " X : " << (int)(GLOBAL_UTIL::BIT_CONVERTER::GetLeft4Bit(dataBuffer[1]))
-			<< " , y : " << (int)(GLOBAL_UTIL::BIT_CONVERTER::GetRight4Bit(dataBuffer[1]))
-			<< "\n 2 : " << std::bitset<8>(dataBuffer[2])
-			<< "\n 3 : " << std::bitset<8>(dataBuffer[3])
-			<< "\n 4 : " << std::bitset<8>(dataBuffer[4])
-			<< "\n 5 : " << std::bitset<8>(dataBuffer[5])
-			<< "\n 6 : " << std::bitset<8>(dataBuffer[6])
-			<< "\n 7 : " << std::bitset<8>(dataBuffer[7])
-			<< "\n 8 : " << std::bitset<8>(dataBuffer[8])
-			<< "\n 9 : " << std::bitset<8>(dataBuffer[9])
-			<< "\n 10 : " << std::bitset<8>(dataBuffer[10])
-			<< "\n 11 : " << std::bitset<8>(dataBuffer[11])
-			<< "\n 12 : " << std::bitset<8>(dataBuffer[12]) << "\n\n";
-	}
-
-	ProcessMyCharacterPosition(1);
-	const int recvOtherPlayerCount = ProcessOtherCharacterPosition(2);
-	return std::make_pair(recvCharacterPoistionArr, recvOtherPlayerCount);
 }
 
-void NetworkManager::ProcessMyCharacterPosition(const int inPositionIndex)
+
+/*
+	SendPacket()
+		- WSASend!는 여기에서만 존재할 수 있습니다.
+
+	!0. 단순히 WSA Send만 있는 함수입니다. 데이터는 준비해주세요.
+	!1. 이 함수를 호출하기 전에, wsaBuf의 len을 설정해주세요.
+
+	?0. wsaBuf의 buf는 보낼때마다 바꿔줘야 할까요?
+*/
+void NetworkManager::SendPacket(char* packetData)
 {
-	recvCharacterPoistionArr[0] = { GLOBAL_UTIL::BIT_CONVERTER::GetLeft4Bit(dataBuffer[inPositionIndex]), GLOBAL_UTIL::BIT_CONVERTER::GetRight4Bit(dataBuffer[inPositionIndex]) };
+	MemoryUnit* sendMemoryUnit = new MemoryUnit(false);
+	memcpy(sendMemoryUnit->dataBuf, packetData, packetData[0]);
+	sendMemoryUnit->wsaBuf.len = packetData[0];
+
+	DWORD flag{};
+	ZeroMemory(&sendMemoryUnit->overlapped, sizeof(sendMemoryUnit->overlapped));
+
+	ERROR_HANDLING::errorRecvOrSendArr[
+		static_cast<bool>(
+			1 + WSASend(socket, &sendMemoryUnit->wsaBuf, 1, NULL, 0, &sendMemoryUnit->overlapped, NULL)
+			)
+	]();
 }
 
-int NetworkManager::ProcessOtherCharacterPosition(const int inStartIndex)
-{
-	const int recvConnectedPlayerCount = static_cast<int>(dataBuffer[inStartIndex]);
-	for (int i = 1; i < recvConnectedPlayerCount; ++i)
-	{
-		recvCharacterPoistionArr[i] = { GLOBAL_UTIL::BIT_CONVERTER::GetLeft4Bit(dataBuffer[i + inStartIndex]), GLOBAL_UTIL::BIT_CONVERTER::GetRight4Bit(dataBuffer[i + inStartIndex]) };
-	}
+/*
+	RecvPacket()
+		- WSA Recv는 여기서만 존재합니다.
 
-	return recvConnectedPlayerCount;
+	!0. SocketInfo에 있는 wsaBuf -> buf 에 리시브를 합니다.
+	!1. len은 고정된 값을 사용합니다. MAX_SIZE_OF_RECV_BUFFER!
+*/
+void NetworkManager::RecvPacket()
+{
+	// 받은 데이터에 대한 처리가 끝나면 바로 다시 받을 준비.
+	DWORD flag{};
+
+	ZeroMemory(&(recvMemoryUnit->overlapped), sizeof(recvMemoryUnit->overlapped));
+
+	ERROR_HANDLING::errorRecvOrSendArr[
+		static_cast<bool>(
+			1 + WSARecv(socket, &(recvMemoryUnit->wsaBuf), 1, NULL, &flag /* NULL*/, &(recvMemoryUnit->overlapped), NULL)
+			)
+	]();
+}
+
+/*
+	NetworkManager::AfterRecv(SocketInfo* pClient)
+		- 리시브 함수 호출 후, 클라이언트의 데이터를 실제로 받았을 때, 호출되는 함수.
+*/
+void NetworkManager::AfterRecv(/*MemoryUnit* pClient,*/ int cbTransferred)
+{
+	// 받은 데이터 처리
+	ProcessRecvData(cbTransferred);
+}
+
+/*
+	NetworkManager::ProcessRecvData(SocketInfo* pClient, int restSize)
+		- 받은 데이터들을 패킷화하여 처리하는 함수.
+*/
+void NetworkManager::ProcessRecvData(int restSize)
+{
+	char* pBuf = recvMemoryUnit->dataBuf; // pBuf -> 처리하는 문자열의 시작 위치
+	char packetSize{ 0 }; // 처리해야할 패킷의 크기
+
+	// 이전에 처리를 마치지 못한 버퍼가 있다면, 처리해야할 패킷 사이즈를 알려줘.
+	if (0 < loadedSize) packetSize = loadedBuf[0];
+
+	// 처리하지 않은 버퍼의 크기가 0이 될때까지 돌립니다.
+	while (restSize > 0)
+	{
+		// 이전에 처리를 마치지 못한 버퍼를 처리해야한다면 패스, 아니라면 처리해야할 패킷의 크기를 받음.
+		if (packetSize == 0) packetSize = pBuf[0];
+
+		// 처리해야하는 패킷 사이즈 중에서, 이전에 이미 처리한 패킷 사이즈를 빼준다.
+		int required = packetSize - loadedSize;
+
+		// 패킷을 완성할 수 있을 때 (요청해야할 사이즈보다, 남은 사이즈가 크거나 같을 때)
+		if (restSize >= required)
+		{
+			memcpy(loadedBuf + loadedSize, pBuf, required);
+			//---
+
+			//---
+			restSize -= required;
+			pBuf += required;
+			packetSize = 0;
+		}
+		// 패킷을 완성할 수 없을 때
+		else
+		{
+			memcpy(loadedBuf, pBuf, restSize);
+			loadedSize = restSize;
+			restSize = 0;
+		}
+	}
+}
+
+/*
+	NetworkManager::ProcessLoadedPacket()
+		- 받은 데이터들을 패킷화하여 처리하는 함수.
+*/
+void NetworkManager::ProcessLoadedPacket()
+{
+	using namespace PACKET_TYPE;
+
+	switch (loadedBuf[1])
+	{
+	case SC::LOGIN_OK:
+		pGameFramework->RecvLoginOK(loadedBuf);
+		break;
+	case SC::PUT_PLAYER:
+		pGameFramework->RecvPutPlayer(loadedBuf);
+		break;
+	case SC::REMOVE_PLAYER:
+		pGameFramework->RecvRemovePlayer(loadedBuf);
+		break;
+	case SC::POSITION:
+		pGameFramework->RecvPosition(loadedBuf);
+		break;
+	default:
+		std::cout << "정의되지 않은 프로토콜을 받았습니다. \n";
+		break;
+	}
+}
+
+/*
+	GameServer::AfterSend(SocketInfo* pClient)
+		- WSASend 함수 호출 후, 데이터 전송이 끝났을 때, 호출되는 함수.
+*/
+void NetworkManager::AfterSend(MemoryUnit* pMemoryUnit)
+{
+	delete pMemoryUnit;
+}
+
+void NetworkManager::SendMoveData(const BYTE /*DIRECTION*/ inDirection)
+{
+
 }

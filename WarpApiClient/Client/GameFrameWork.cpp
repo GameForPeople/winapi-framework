@@ -21,9 +21,17 @@
 #include "GameFramework.h"
 
 WGameFramework::WGameFramework(const std::string_view& inIPAddress)
-	: networkManager(std::make_unique<NetworkManager>(inIPAddress))
-	, tickCount(0)
+	: networkManager()
+	, tickCount()
+	, backgroundModel()
+	, m_hWnd()
+	, myClientKey()
+	, originPlayerModel()
+	, originOtherPlayerModel()
+	, otherPlayerContLock()
 {
+	networkManager = std::make_unique<NetworkManager>(inIPAddress, this);
+	otherPlayerCont.clear();
 }
 
 WGameFramework::~WGameFramework()
@@ -32,6 +40,7 @@ WGameFramework::~WGameFramework()
 	delete backgroundModel;
 	delete originOtherPlayerModel;
 
+	otherPlayerCont.clear();
 	/* auto */
 	//playerCharacter.reset();
 	//backgroundActor.reset();
@@ -54,12 +63,9 @@ void WGameFramework::Create(HWND hWnd)
 	originOtherPlayerModel = new TransparentModel(L"Resource/Image/Image_OtherCharacter.png");
 	backgroundModel = new StretchModel(L"Resource/Image/Image_Background.png");
 	
-	playerCharacter = std::make_unique<Pawn>(originPlayerModel,
-		RenderData(0, 0, 100, 100, RGB(255, 0, 0)));
-	
-	for( int i = 0; i < otherPlayerArr.size(); ++i)
-		otherPlayerArr[i] = std::make_unique<Pawn>(originOtherPlayerModel,
-			RenderData(0, 0, 100, 100, RGB(255, 0, 0)), false);
+	//for( int i = 0; i < otherPlayerArr.size(); ++i)
+	//	otherPlayerArr[i] = std::make_unique<Pawn>(originOtherPlayerModel,
+	//		RenderData(0, 0, 100, 100, RGB(255, 0, 0)), false);
 	
 	backgroundActor = std::make_unique<BaseActor>(backgroundModel, 
 		RenderData(0,0, 1000, 770));
@@ -67,22 +73,18 @@ void WGameFramework::Create(HWND hWnd)
 
 void WGameFramework::OnDraw(HDC hdc)
 {
-	// Caution! Render Sort!
-
+	// 렌더링 우선순위를 주의해야합니다!
 	backgroundActor->Render(hdc);
 
-	for (auto iter = otherPlayerArr.cbegin(); iter != otherPlayerArr.cend(); ++iter) (*iter)->Render(hdc);
+	otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
+	for (auto iter = otherPlayerCont.cbegin(); iter != otherPlayerCont.cend(); ++iter) (iter->second)->Render(hdc);
+	otherPlayerContLock.unlock(); //------------------------------------------------0
 
-	playerCharacter->Render(hdc);
+	if(playerCharacter != nullptr) playerCharacter->Render(hdc);
 }
 
 void WGameFramework::OnUpdate(const float frameTime)
 {
-	if (++tickCount == 30)
-	{
-		SetCharactersLocation(networkManager->SendVoidUpdate(), false);
-		tickCount = 0;
-	}
 }
 
 void WGameFramework::Mouse(UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -108,13 +110,11 @@ void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 			case static_cast<WPARAM>(VK_KEY::VK_Q) :
 				SendMessage(m_hWnd, WM_DESTROY, 0, 0);
 				break;
-
-				case static_cast<WPARAM>(VK_UP) :
-				case static_cast<WPARAM>(VK_DOWN) :
-				case static_cast<WPARAM>(VK_LEFT) :
-				case static_cast<WPARAM>(VK_RIGHT) :
-					// 현재는 블로킹이며, Send 후 Recv 과정 고정.
-					SetCharactersLocation(networkManager->SendMoveData(static_cast<DIRECTION>(static_cast<BYTE>(wParam) - VK_LEFT)), true);
+			case static_cast<WPARAM>(VK_LEFT) :
+			case static_cast<WPARAM>(VK_UP) :
+			case static_cast<WPARAM>(VK_RIGHT) :
+			case static_cast<WPARAM>(VK_DOWN) :
+				networkManager->SendMoveData(static_cast<BYTE>(wParam) - VK_LEFT);
 				break;
 			}
 			break;
@@ -127,6 +127,72 @@ void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 	}
 }
 
+void WGameFramework::RecvLoginOK(const char* pBufferStart)
+{
+	//using namespace PACKET_DATA::SC;
+	//LoginOk packet(pBufferStart[2]);
+
+	myClientKey = static_cast<_ClientKeyType>(pBufferStart[2]);
+}
+
+void WGameFramework::RecvPutPlayer(const char* pBufferStart)
+{
+	using namespace PACKET_DATA::SC;
+	PutPlayer packet(pBufferStart[2], pBufferStart[3], pBufferStart[4]);
+
+	if (myClientKey == packet.id)
+	{
+		playerCharacter = std::make_unique<Pawn>(originPlayerModel,
+			RenderData(0, 0, 100, 100, COLOR::_RED), packet.x, packet.y);
+
+		return;
+	}
+
+	otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
+	// 안녕! 새로운 플레이어!
+	otherPlayerCont.emplace_back(
+		std::make_pair( packet.id, std::make_unique<Pawn>(originOtherPlayerModel,
+			RenderData(0, 0, 100, 100, COLOR::_RED), packet.x , packet.y	)
+		)
+	);
+	otherPlayerContLock.unlock(); //------------------------------------------------0
+}
+
+void WGameFramework::RecvRemovePlayer(const char* pBufferStart)
+{
+	using namespace PACKET_DATA::SC;
+	RemovePlayer packet(pBufferStart[2]);
+
+	otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
+	// 잘가랏 플레이어!!
+	for (auto iter = otherPlayerCont.begin(); iter != otherPlayerCont.end(); ++iter)
+	{
+		if (iter->first == packet.id)
+		{
+			otherPlayerCont.erase(iter);
+			break;
+		}
+	}
+	otherPlayerContLock.unlock(); //------------------------------------------------0
+}
+
+void WGameFramework::RecvPosition(const char* pBufferStart)
+{
+	using namespace PACKET_DATA::SC;
+	Position packet(pBufferStart[2], pBufferStart[3], pBufferStart[4]);
+
+	// 너의 새 위치는?
+	for (auto iter = otherPlayerCont.begin(); iter != otherPlayerCont.end(); ++iter)
+	{
+		if (iter->first == packet.id)
+		{
+			(iter->second)->SetPosition(std::make_pair(packet.x, packet.y));
+			break;
+		}
+	}
+}
+
+/*
 void WGameFramework::SetCharactersLocation(const std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> inCont, const bool inMyCharacterInclude)
 {
 	auto[pRecvCharacterPositionArr, connectedPlayerCount] = inCont;
@@ -141,3 +207,4 @@ void WGameFramework::SetCharactersLocation(const std::pair<std::array<std::pair<
 	}
 	for (int i = connectedPlayerCount - 1; i < GLOBAL_DEFINE::MAX_CLIENT + 1; ++i) otherPlayerArr[i]->SetRender(false);
 }
+*/

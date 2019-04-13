@@ -1,27 +1,32 @@
 #pragma once
 
 class WGameFramework;
-enum class PACKET_TYPE;
+struct MemoryUnit;
 
 class NetworkManager
 {
 public:
-	// Return 최적화 필요.
-	std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> SendVoidUpdate();	//PT_000
-	std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> SendMoveData(const DIRECTION);	// PT_001
+	NetworkManager(const std::string_view&, WGameFramework*);
+	~NetworkManager();
 
-	NetworkManager(const std::string_view&, WGameFramework* );
-	~NetworkManager() = default;
+	void SendMoveData(const BYTE inDirection);
 
 private:
 	void InitNetwork();
-	
-	void ProcessMyCharacterPosition(const int inPositionIndex);
-	int ProcessOtherCharacterPosition(const int inStartIndex);
 
 	// for Worker Thread
 	static DWORD WINAPI StartWorkerThread(LPVOID arg);
 	void WorkerThreadFunction();
+
+	// for Send Recv
+	void SendPacket(char* packetData);
+	void RecvPacket();
+
+	void AfterRecv(/*MemoryUnit* pClient,*/ int cbTransferred);
+	void AfterSend(MemoryUnit* pMemoryUnit);
+
+	void ProcessRecvData(int restSize);
+	void ProcessLoadedPacket();
 
 private:
 	WGameFramework* pGameFramework;
@@ -34,7 +39,10 @@ private:
 	SOCKADDR_IN serverAddr;
 
 	std::string ipAddress;
-	char dataBuffer[RECV_BUFFER_SIZE];
 
-	std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1> recvCharacterPoistionArr;
+	//MemoryUnit sendMemoryUnit;
+	MemoryUnit* recvMemoryUnit;
+
+	char loadedBuf[GLOBAL_DEFINE::MAX_SIZE_OF_RECV];
+	int loadedSize;
 };
