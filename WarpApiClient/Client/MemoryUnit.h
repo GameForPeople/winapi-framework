@@ -5,7 +5,7 @@ struct MemoryUnit
 	OVERLAPPED overlapped;
 	WSABUF wsaBuf;
 
-	const bool isRecv;	// MemoryUnit은 항상 false이기 때문에 False. true == recv, false == send
+	const bool isRecv;	// true == recv, false == send
 
 	char* dataBuf;
 

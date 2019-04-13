@@ -14,26 +14,26 @@ Pawn::~Pawn()
 {
 }
 
-void Pawn::MoveWithDirection(DIRECTION inDirection)
-{
-	switch (inDirection)
-	{
-	case DIRECTION::UP:
-		if (yPosition != BLOCK_MIN_POSITION) --yPosition;
-		break;
-	case DIRECTION::DOWN:
-		if (yPosition != BLOCK_MAX_POSITION) ++yPosition;
-		break;
-	case DIRECTION::LEFT:
-		if (xPosition != BLOCK_MIN_POSITION) --xPosition;
-		break;
-	case DIRECTION::RIGHT:
-		if (xPosition != BLOCK_MAX_POSITION) ++xPosition;
-		break;
-	}
-
-	UpdateRenderData();
-}
+//void Pawn::MoveWithDirection(DIRECTION inDirection)
+//{
+//	switch (inDirection)
+//	{
+//	case DIRECTION::UP:
+//		if (yPosition != BLOCK_MIN_POSITION) --yPosition;
+//		break;
+//	case DIRECTION::DOWN:
+//		if (yPosition != BLOCK_MAX_POSITION) ++yPosition;
+//		break;
+//	case DIRECTION::LEFT:
+//		if (xPosition != BLOCK_MIN_POSITION) --xPosition;
+//		break;
+//	case DIRECTION::RIGHT:
+//		if (xPosition != BLOCK_MAX_POSITION) ++xPosition;
+//		break;
+//	}
+//
+//	UpdateRenderData();
+//}
 
 void Pawn::SetPosition(const std::pair<UINT8, UINT8> inPosition)
 {

@@ -11,6 +11,26 @@ namespace GLOBAL_DEFINE
 	constexpr UINT8 MAX_LOADSTRING{ 100 };
 }
 
+namespace ERROR_HANDLING {
+	// 해당 static Function Array의 초기화는 GameServer의 생성자에서 이루어짐.
+	static std::function<void(void)> errorRecvOrSendArr[2];
+
+	inline void NotError(void) {};
+	void HandleRecvOrSendError(void);
+
+	_NORETURN void ERROR_QUIT(const WCHAR* msg);
+	/*_DEPRECATED*/ void ERROR_DISPLAY(const CHAR* msg);
+}
+
+namespace COLOR
+{
+	constexpr DWORD _RED = RGB(255, 0, 0);
+	constexpr DWORD _GREEN = RGB(0, 255, 0);
+	constexpr DWORD _BLUE = RGB(0, 0, 255);
+	constexpr DWORD _WHITE = RGB(255, 255, 255);
+	constexpr DWORD _BLACK = RGB(0, 0, 0);
+}
+
 // KeyBoard
 enum class VK_KEY
 {

@@ -12,7 +12,7 @@ public:
 	virtual ~Pawn() override;
 
 public:
-	void MoveWithDirection(DIRECTION inDirection);
+	//void MoveWithDirection(DIRECTION inDirection); // only Client
 	void SetPosition(const std::pair<UINT8, UINT8>);
 	
 private:

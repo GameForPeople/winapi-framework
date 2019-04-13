@@ -36,9 +36,13 @@
 #include <string>
 #include <string_view> 
 
+#include <functional>
+
 #include <bitset>	// debug
 
 #include <thread>	//thread
+
+#include <mutex>
 
 #include <array>
 
