@@ -1,3 +1,4 @@
+#pragma once
 /*
 	kpu-warp-winapi-framework		Copyright ⓒ https://github.com/KPU-WARP
 
@@ -7,14 +8,6 @@
 	
 	#2. 기타 문의는, KoreaGameMaker@gmail.com으로 부탁드립니다. 감사합니다 :)
 */
-
-#pragma once
-
-#ifdef _DEBUG
-	#define _DEV_MODE_
-#endif
-
-#pragma once
 
 /*
 	Define.h
@@ -27,6 +20,11 @@
 		- 절대로 네임스페이스 없이, 변수명만으로 사용되는 경우를 방지합니다.
 	!1. enum class, enum의 경우 마지막에 ENUM_SIZE를 포함해야합니다.
 */
+
+
+//--------------------- for DEV_MODE
+#define _DEV_MODE_
+//---------------------
 
 namespace NETWORK_TYPE
 {
@@ -168,14 +166,12 @@ namespace UNICODE_UTIL {
 namespace GLOBAL_DEFINE
 {
 	constexpr USHORT SERVER_PORT = 9000;
-	constexpr BYTE MAX_HEIGHT = 7;
-	constexpr BYTE MAX_WIDTH = 7;
+
 	constexpr BYTE MAX_CLIENT = 10;
 
-	// 아래 상수들은 추후 해당 헤더에서 추방, SERVER_DEFINE으로 위치 변경 필요합니다.
-	constexpr USHORT MAX_SIZE_OF_RECV = 100;		//Recv 한번에 받을 수 있는 최대 사이즈
-	constexpr USHORT MAX_SIZE_OF_RECV_PACKET = sizeof(PACKET_DATA::CLIENT_TO_SERVER::Down);	// (2) Recv 시, 처리해야하는 패킷 중 가장 큰 사이즈
-	constexpr USHORT MAX_SIZE_OF_SEND = sizeof(PACKET_DATA::SERVER_TO_CLIENT::Position);	// (5) Send 시, 처리해야하는 패킷 중 가장 큰 사이즈
-	constexpr USHORT MAX_NUMBER_OF_SEND_POOL = 100;
+	constexpr BYTE MAX_HEIGHT = 100;
+	constexpr BYTE MAX_WIDTH = 100;
+
+	constexpr BYTE VIEW_DISTANCE = 4;
 }
 
