@@ -35,16 +35,31 @@ Pawn::~Pawn()
 //	UpdateRenderData();
 //}
 
-void Pawn::SetPosition(const std::pair<UINT8, UINT8> inPosition)
+void Pawn::Render(HDC pHDC) 
+{
+	if (isRender) 
+	{
+		// ÄÃ¸µ
+		if (renderData->xPosition <= -2000) return;
+		if (renderData->xPosition >= 1000) return;
+
+		if (renderData->yPosition <= -2000) return;
+		if (renderData->yPosition >= 1000) return;
+
+		renderComponent->Render(pHDC, renderData);
+	}
+}
+
+void Pawn::SetPosition(const std::pair<UINT8, UINT8> inPosition, const std::pair<UINT8, UINT8> inMainPlayerPosition)
 {
 	xPosition = inPosition.first;
 	yPosition = inPosition.second;
 
-	UpdateRenderData();
+	UpdateRenderData(inMainPlayerPosition);
 }
 
-void Pawn::UpdateRenderData()
+void Pawn::UpdateRenderData(const std::pair<UINT8, UINT8> inMainPlayerPosition)
 {
-	renderData->xPosition = xPosition * BLOCK_WIDTH_SIZE;
-	renderData->yPosition = yPosition * BLOCK_HEIGHT_SIZE;
+	renderData->xPosition = (xPosition - inMainPlayerPosition.second) * BLOCK_WIDTH_SIZE;
+	renderData->yPosition = (yPosition - inMainPlayerPosition.second) * BLOCK_HEIGHT_SIZE;
 }

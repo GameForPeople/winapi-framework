@@ -10,7 +10,7 @@ public:
 	virtual ~BaseActor();
 
 public:
-	void Render(HDC pHDC);
+	virtual void Render(HDC pHDC);
 	inline void SetRender(const bool inIsRender) noexcept {	isRender = inIsRender; };
 
 protected:
