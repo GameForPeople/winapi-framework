@@ -9,21 +9,21 @@
 #include "NetworkManager.h"
 
 NetworkManager::NetworkManager(const std::string_view& inIPAddress, WGameFramework* InGameFramework)
-	: ipAddress(inIPAddress), pGameFramework(InGameFramework)
-	//, sendMemoryUnit(false)
-	, recvMemoryUnit(nullptr)
+	: ipAddress(inIPAddress) 
+	, pGameFramework(InGameFramework)
 	, hIOCP()
+	, workerThread()
+	, wsa()
+	, socket()
+	, serverAddr()
+	, recvMemoryUnit(nullptr)
 	, loadedBuf()
 	, loadedSize()
-	, serverAddr()
-	, socket()
-	, wsa()
 {
 	//for (int i = 0; i < 10; ++i)
 	//{
 	//	recvCharacterPoistionArr[i] = {0, 0};
 	//}
-
 	ERROR_HANDLING::errorRecvOrSendArr[0] = ERROR_HANDLING::HandleRecvOrSendError;
 	ERROR_HANDLING::errorRecvOrSendArr[1] = ERROR_HANDLING::NotError;
 
@@ -35,6 +35,8 @@ NetworkManager::NetworkManager(const std::string_view& inIPAddress, WGameFramewo
 NetworkManager::~NetworkManager()
 {
 	pGameFramework = nullptr;
+
+	delete recvMemoryUnit;
 }
 
 void NetworkManager::InitNetwork()
@@ -68,9 +70,10 @@ void NetworkManager::InitNetwork()
 	if (int retVal = connect(socket, (SOCKADDR*)& serverAddr, sizeof(serverAddr))
 		; retVal == SOCKET_ERROR) ERROR_QUIT(L"bind()");
 
+	// 8. 리시브 온!
 	RecvPacket();
 
-	std::cout << "커넥트에 성공했습니다." << std::endl;
+	std::cout << "[정상적으로 연결되었습니다.]" << std::endl;
 }
 
 DWORD WINAPI NetworkManager::StartWorkerThread(LPVOID arg)
@@ -122,7 +125,6 @@ void NetworkManager::WorkerThreadFunction()
 			: AfterSend(pMemoryUnit);
 	}
 }
-
 
 /*
 	SendPacket()

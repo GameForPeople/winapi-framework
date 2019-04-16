@@ -18,11 +18,11 @@
     <Filter Include="RenderModel">
       <UniqueIdentifier>{f37d74be-d123-4e03-b8b6-d894856a8332}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Object">
-      <UniqueIdentifier>{1334b0b6-4b2f-488a-b304-7959ee468803}</UniqueIdentifier>
-    </Filter>
     <Filter Include="NetworkManager">
       <UniqueIdentifier>{9c96bcf4-29e1-4a86-8d86-244f20eb74c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObjectClass">
+      <UniqueIdentifier>{1334b0b6-4b2f-488a-b304-7959ee468803}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,10 +42,10 @@
       <Filter>RenderModel</Filter>
     </ClInclude>
     <ClInclude Include="BaseActor.h">
-      <Filter>Object</Filter>
+      <Filter>ObjectClass</Filter>
     </ClInclude>
     <ClInclude Include="Pawn.h">
-      <Filter>Object</Filter>
+      <Filter>ObjectClass</Filter>
     </ClInclude>
     <ClInclude Include="TransparentModel.h">
       <Filter>RenderModel</Filter>
@@ -78,10 +78,10 @@
       <Filter>RenderModel</Filter>
     </ClCompile>
     <ClCompile Include="BaseActor.cpp">
-      <Filter>Object</Filter>
+      <Filter>ObjectClass</Filter>
     </ClCompile>
     <ClCompile Include="Pawn.cpp">
-      <Filter>Object</Filter>
+      <Filter>ObjectClass</Filter>
     </ClCompile>
     <ClCompile Include="TransparentModel.cpp">
       <Filter>RenderModel</Filter>

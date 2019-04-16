@@ -1,7 +1,5 @@
 #pragma once
 
-#include "BaseModel.h"
-
 class TransparentModel final : public BaseModel
 {
 public:

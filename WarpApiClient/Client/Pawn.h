@@ -17,8 +17,8 @@ public:
 	//void MoveWithDirection(DIRECTION inDirection); // only Client
 	void SetPosition(const std::pair<UINT8, UINT8>, const std::pair<UINT8, UINT8>);
 
-	// 이름 길어서 누가봐도 안씀 좋아! (플레이어만 사용하는 함수)
-	void SetOnlyActorPositionNotUpdateRenderData(const std::pair<UINT8, UINT8>);
+	
+	void SetOnlyActorPositionNotUpdateRenderData(const std::pair<UINT8, UINT8>);	// 이름 일부러 길게. (플레이어만 사용하는 함수)
 	void UpdateRenderData(const std::pair<UINT8, UINT8>);
 	inline std::pair<UINT8, UINT8> GetPosition() noexcept { return std::make_pair(xPosition, yPosition); }
 

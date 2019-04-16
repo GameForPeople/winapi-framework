@@ -15,24 +15,30 @@
 #include "NetworkManager.h"
 
 #include "Pawn.h"
+
+#include "BaseModel.h"
 #include "TransparentModel.h"
 #include "StretchModel.h"
 
 #include "GameFramework.h"
 
 WGameFramework::WGameFramework(const std::string_view& inIPAddress)
-	: networkManager()
+	: m_hWnd()
 	, tickCount()
-	, m_hWnd()
-	, myClientKey()
+	, networkManager(nullptr)
 	, originPlayerModel(nullptr)
 	, originOtherPlayerModel(nullptr)
-	, backgroundModel(nullptr)
-	, otherPlayerContLock()
-	, playerCharacter(nullptr)
+	, originBackgroundModel(nullptr)
 	, coverUIModel(nullptr)
 	, broadcastAreaModel(nullptr)
+	, playerCharacter(nullptr)
+	, otherPlayerCont()
+	, otherPlayerContLock()
+	, backgroundActorCont()
+	, coverUI()
+	, broadcastAreaUI()
 	, ipAddress(inIPAddress)
+	, myClientKey()
 {
 	otherPlayerCont.clear();
 }
@@ -40,8 +46,11 @@ WGameFramework::WGameFramework(const std::string_view& inIPAddress)
 WGameFramework::~WGameFramework()
 {
 	delete originPlayerModel;
-	delete backgroundModel;
 	delete originOtherPlayerModel;
+	delete originBackgroundModel;
+
+	delete coverUIModel;
+	delete broadcastAreaModel;
 
 	otherPlayerCont.clear();
 
@@ -65,7 +74,7 @@ void WGameFramework::Create(HWND hWnd)
 	//build Object
 	originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
 	originOtherPlayerModel = new TransparentModel(L"Resource/Image/Image_OtherCharacter.png");
-	backgroundModel = new StretchModel(L"Resource/Image/Image_New_Background.png");
+	originBackgroundModel = new StretchModel(L"Resource/Image/Image_New_Background.png");
 	coverUIModel = new StretchModel(L"Resource/Image/Image_Cover.png");
 	broadcastAreaModel = new TransparentModel(L"Resource/Image/Image_BroadcastArea.png");
 	//for( int i = 0; i < otherPlayerArr.size(); ++i)
@@ -85,7 +94,7 @@ void WGameFramework::Create(HWND hWnd)
 	{
 		for (int j = 0; j < tempBackgroundCount; ++j)
 		{
-			backgroundActorCont[i].emplace_back(std::make_unique<Pawn>(backgroundModel, RenderData(0, 0, 560, 560), i * 8, j * 8 ));
+			backgroundActorCont[i].emplace_back(std::make_unique<Pawn>(originBackgroundModel, RenderData(0, 0, 560, 560), i * 8, j * 8 ));
 		}
 	}
 
@@ -189,7 +198,9 @@ void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 			originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
 		}
 
+#ifdef _DEV_MODE_
 		std::cout << "[RECV] 내캐릭터가 생성됩니다 " << std::endl;
+#endif
 
 		playerCharacter = std::make_unique<Pawn>(originPlayerModel,
 			RenderData(350, 350, 70, 70, COLOR::_RED), packet.x, packet.y);
@@ -202,7 +213,7 @@ void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 		// 안녕! 새로운 플레이어!
 		otherPlayerCont.emplace_back(
 			std::make_pair(packet.id, std::make_unique<Pawn>(originOtherPlayerModel,
-				RenderData(0, 0, 100, 100, COLOR::_RED), packet.x, packet.y)
+				RenderData(0, 0, 70, 70, COLOR::_RED), packet.x, packet.y)
 			)
 		).second->UpdateRenderData(playerCharacter->GetPosition());
 

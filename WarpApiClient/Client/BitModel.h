@@ -1,7 +1,5 @@
 #pragma once
 
-#include "BaseModel.h"
-
 class BitModel final : public BaseModel
 {
 public:

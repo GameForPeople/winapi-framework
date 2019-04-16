@@ -29,16 +29,15 @@ private:
 	void ProcessLoadedPacket();
 
 private:
+	std::string ipAddress;
 	WGameFramework* pGameFramework;
 
 	HANDLE hIOCP;
 	std::thread workerThread;
 
-	SOCKET socket;
 	WSADATA wsa;
+	SOCKET socket;
 	SOCKADDR_IN serverAddr;
-
-	std::string ipAddress;
 
 	//MemoryUnit sendMemoryUnit;
 	MemoryUnit* recvMemoryUnit;

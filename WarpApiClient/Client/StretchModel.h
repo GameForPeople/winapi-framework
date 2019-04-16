@@ -1,7 +1,5 @@
 #pragma once
 
-#include "BaseModel.h"
-
 class StretchModel final : public BaseModel
 {
 public:

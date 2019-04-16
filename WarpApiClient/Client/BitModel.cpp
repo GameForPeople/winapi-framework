@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "BaseModel.h"
 
 #include "BitModel.h"
 
