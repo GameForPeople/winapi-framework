@@ -24,6 +24,9 @@ NetworkManager::NetworkManager(const std::string_view& inIPAddress, WGameFramewo
 	//	recvCharacterPoistionArr[i] = {0, 0};
 	//}
 
+	ERROR_HANDLING::errorRecvOrSendArr[0] = ERROR_HANDLING::HandleRecvOrSendError;
+	ERROR_HANDLING::errorRecvOrSendArr[1] = ERROR_HANDLING::NotError;
+
 	recvMemoryUnit = new MemoryUnit(true);
 
 	InitNetwork();
@@ -45,12 +48,12 @@ void NetworkManager::InitNetwork()
 	if (hIOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0)
 		; hIOCP == NULL) ERROR_QUIT(TEXT("Make_WorkerThread()"));
 
-	// 3. 워커 쓰레드 생성 및 IOCP 등록
-	workerThread = std::thread{ StartWorkerThread, (LPVOID)this };
-
-	// 4. 소캣 생성
+	// 3. 소캣 생성
 	if (this->socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED)
 		; socket == INVALID_SOCKET) ERROR_QUIT(L"Create_Socket()");
+
+	// 4. 소켓과 입출력 완료 포트 연결
+	CreateIoCompletionPort(reinterpret_cast<HANDLE>(socket), hIOCP, socket, 0);
 
 	// 5. 클라이언트 정보 구조체 객체 설정.
 	ZeroMemory(&serverAddr, sizeof(serverAddr));
@@ -58,9 +61,16 @@ void NetworkManager::InitNetwork()
 	serverAddr.sin_addr.s_addr = inet_addr(ipAddress.c_str());
 	serverAddr.sin_port = htons(GLOBAL_DEFINE::SERVER_PORT);
 
-	// 6. 커넥트!!!!!!!!! 가자아아아아아아아앗!!!!!!!
+	// 6. 워커 쓰레드 생성 및 IOCP 등록
+	workerThread = std::thread{ StartWorkerThread, (LPVOID)this };
+
+	// 7. 커넥트!!!!!!!!! 가자아아아아아아아앗!!!!!!!
 	if (int retVal = connect(socket, (SOCKADDR*)& serverAddr, sizeof(serverAddr))
 		; retVal == SOCKET_ERROR) ERROR_QUIT(L"bind()");
+
+	RecvPacket();
+
+	std::cout << "커넥트에 성공했습니다." << std::endl;
 }
 
 DWORD WINAPI NetworkManager::StartWorkerThread(LPVOID arg)
@@ -92,6 +102,18 @@ void NetworkManager::WorkerThreadFunction()
 		{
 			// 아니! 클라이언트에서 네트워크 오류가 났다고??
 			std::cout << "[오류] 네트워크 오류가 발생했습니다. 클라이언트를 종료합니다." << std::endl;
+			
+			if (retVal == 0)
+			{
+				std::cout << "[오류] 종류 원인은 retVal == 0입니다." << std::endl;
+			}
+			else
+			{
+				std::cout << "[오류] 종류 원인은 cbTransferred == 0입니다." << std::endl;
+			}
+			
+			ERROR_HANDLING::ERROR_QUIT(L"GetQueuedCompletionStatus()");
+
 			break;
 		}
 
@@ -138,9 +160,8 @@ void NetworkManager::RecvPacket()
 {
 	// 받은 데이터에 대한 처리가 끝나면 바로 다시 받을 준비.
 	DWORD flag{};
-
+	
 	ZeroMemory(&(recvMemoryUnit->overlapped), sizeof(recvMemoryUnit->overlapped));
-
 	ERROR_HANDLING::errorRecvOrSendArr[
 		static_cast<bool>(
 			1 + WSARecv(socket, &(recvMemoryUnit->wsaBuf), 1, NULL, &flag /* NULL*/, &(recvMemoryUnit->overlapped), NULL)
@@ -156,6 +177,8 @@ void NetworkManager::AfterRecv(/*MemoryUnit* pClient,*/ int cbTransferred)
 {
 	// 받은 데이터 처리
 	ProcessRecvData(cbTransferred);
+
+	RecvPacket();
 }
 
 /*
@@ -184,6 +207,8 @@ void NetworkManager::ProcessRecvData(int restSize)
 		{
 			memcpy(loadedBuf + loadedSize, pBuf, required);
 			//---
+
+			ProcessLoadedPacket();
 
 			//---
 			restSize -= required;
@@ -239,5 +264,9 @@ void NetworkManager::AfterSend(MemoryUnit* pMemoryUnit)
 
 void NetworkManager::SendMoveData(const BYTE /*DIRECTION*/ inDirection)
 {
-
+#ifdef _DEV_MODE_
+	std::cout << "[SEND] 데이터를 전송합니다.. 보낼 키값은 : MOVE,  방향은" << (int)inDirection << "\n";
+#endif
+	PACKET_DATA::CS::Move packet(inDirection);
+	SendPacket(reinterpret_cast<char*>(&packet));
 }

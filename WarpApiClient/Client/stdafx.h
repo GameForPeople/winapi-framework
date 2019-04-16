@@ -46,6 +46,8 @@
 
 #include <array>
 
+#include <cassert>
+
 #include "Define.h"
 #include "GameFramework.h"
 

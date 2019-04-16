@@ -4,6 +4,14 @@
 
 namespace PACKET_DATA
 {
+	namespace CLIENT_TO_SERVER
+	{
+		Move::Move(char inDirection) noexcept :
+			size(sizeof(Move)), type(PACKET_TYPE::CS::MOVE),
+			direction(inDirection)
+		{}
+	}
+
 	namespace SERVER_TO_CLIENT
 	{
 		LoginOk::LoginOk(const char inNewId) noexcept :

@@ -23,14 +23,17 @@
 WGameFramework::WGameFramework(const std::string_view& inIPAddress)
 	: networkManager()
 	, tickCount()
-	, backgroundModel()
 	, m_hWnd()
 	, myClientKey()
-	, originPlayerModel()
-	, originOtherPlayerModel()
+	, originPlayerModel(nullptr)
+	, originOtherPlayerModel(nullptr)
+	, backgroundModel(nullptr)
 	, otherPlayerContLock()
+	, playerCharacter(nullptr)
+	, coverUIModel(nullptr)
+	, broadcastAreaModel(nullptr)
+	, ipAddress(inIPAddress)
 {
-	networkManager = std::make_unique<NetworkManager>(inIPAddress, this);
 	otherPlayerCont.clear();
 }
 
@@ -86,8 +89,10 @@ void WGameFramework::Create(HWND hWnd)
 		}
 	}
 
-	coverUI = std::make_unique<BaseActor>(coverUIModel, RenderData(800, 0, 200, 800));
+	coverUI = std::make_unique<BaseActor>(coverUIModel, RenderData(770, 0, 220, 800));
 	broadcastAreaUI = std::make_unique<BaseActor>(broadcastAreaModel, RenderData(139, 139, 494, 494, COLOR::_WHITE));
+
+	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
 }
 
 void WGameFramework::OnDraw(HDC hdc)
@@ -108,7 +113,9 @@ void WGameFramework::OnDraw(HDC hdc)
 	if(playerCharacter != nullptr) playerCharacter->Render(hdc);
 
 	coverUI->Render(hdc);
+
 	broadcastAreaUI->Render(hdc);
+
 }
 
 void WGameFramework::OnUpdate(const float frameTime)
@@ -159,7 +166,6 @@ void WGameFramework::RecvLoginOK(const char* pBufferStart)
 {
 	//using namespace PACKET_DATA::SC;
 	//LoginOk packet(pBufferStart[2]);
-
 	myClientKey = static_cast<_ClientKeyType>(pBufferStart[2]);
 
 #ifdef _DEV_MODE_
@@ -173,11 +179,18 @@ void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 	PutPlayer packet(pBufferStart[2], pBufferStart[3], pBufferStart[4]);
 
 #ifdef _DEV_MODE_
-	std::cout << "[RECV] 새로운 캐릭터를 생성합니다. 키값은 : " << packet.id << "위치 x, y는 : " << packet.x << " "<< packet.y <<"\n";
+	std::cout << "[RECV] 새로운 캐릭터를 생성합니다. 키값은 : " << (int)packet.id << "위치 x, y는 : " << (int)packet.x << " "<< (int)packet.y <<"\n";
 #endif
 
 	if (myClientKey == packet.id)
 	{
+		if (originPlayerModel == nullptr)
+		{
+			originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
+		}
+
+		std::cout << "[RECV] 내캐릭터가 생성됩니다 " << std::endl;
+
 		playerCharacter = std::make_unique<Pawn>(originPlayerModel,
 			RenderData(350, 350, 70, 70, COLOR::_RED), packet.x, packet.y);
 
@@ -230,7 +243,10 @@ void WGameFramework::RecvPosition(const char* pBufferStart)
 
 	if (myClientKey == packet.id)
 	{
-		playerCharacter->SetPosition(std::make_pair(packet.x, packet.y), std::make_pair(packet.x, packet.y));
+#ifdef _DEV_MODE_
+		std::cout << "내 캐릭터가 이동합니다. 위치 x, y는 : " << packet.x << " " << packet.y << "\n";
+#endif
+		playerCharacter->SetOnlyActorPositionNotUpdateRenderData(std::make_pair(packet.x, packet.y));
 		UpdateOtherClient();
 		UpdateBackgroundActor();
 	}
@@ -257,7 +273,10 @@ void WGameFramework::UpdateOtherClient()
 
 void WGameFramework::UpdateBackgroundActor()
 {
-	for (auto iter = backgroundActorCont.cbegin(); iter != backgroundActorCont.end(); ++iter)
+#ifdef _DEV_MODE_
+	std::cout << "backgroundActorCont의 위치를 갱신합니다." << "\n";
+#endif
+	for (auto iter = backgroundActorCont.begin(); iter != backgroundActorCont.end(); ++iter)
 	{
 		for (auto inIter = (*iter).cbegin(); inIter != (*iter).cend(); ++inIter)
 		{
