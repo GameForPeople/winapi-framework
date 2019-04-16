@@ -73,8 +73,8 @@ struct RenderData
 
 struct RenderData
 {
-	UINT16 xPosition;
-	UINT16 yPosition;
+	/*UINT16*/ int xPosition;
+	/*UINT16*/ int yPosition;
 	UINT16 xSize;
 	UINT16 ySize;
 	UINT32 rgbColor;
@@ -82,16 +82,16 @@ struct RenderData
 	RenderData() noexcept = delete;
 	~RenderData() = default;
 
-	RenderData(const UINT16 inXPosition = 0, const UINT16 inYPosition = 0) noexcept
+	RenderData(const int inXPosition = 0, const int inYPosition = 0) noexcept
 		: xPosition(inXPosition), yPosition(inYPosition), xSize(), ySize(), rgbColor()
 	{};
 
-	RenderData(const UINT16 inXPosition, const UINT16 inYPosition,
+	RenderData(const int inXPosition, const int inYPosition,
 		const UINT16 inXSize, const UINT16 inYSize) noexcept
 		: xPosition(inXPosition), yPosition(inYPosition), xSize(inXSize), ySize(inYSize), rgbColor()
 	{};
 
-	RenderData(const UINT16 inXPosition, const UINT16 inYPosition,
+	RenderData(const int inXPosition, const int inYPosition,
 		const UINT16 inXSize, const UINT16 inYSize, const UINT32 inRgbColor) noexcept
 		: xPosition(inXPosition), yPosition(inYPosition), xSize(inXSize), ySize(inYSize), rgbColor(inRgbColor)
 	{};

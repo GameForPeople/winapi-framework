@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include "ClientDefine.h"
+
 #include "BaseModel.h"
 
 #include "Pawn.h"
@@ -40,12 +42,12 @@ void Pawn::Render(HDC pHDC)
 	if (isRender) 
 	{
 		// ÄÃ¸µ
-		if (renderData->xPosition <= -2000) return;
-		if (renderData->xPosition >= 1000) return;
+		if (renderData->xPosition <= -3000) return;
+		if (renderData->xPosition >= 1100) return;
 
-		if (renderData->yPosition <= -2000) return;
-		if (renderData->yPosition >= 1000) return;
-
+		if (renderData->yPosition <= -3000) return;
+		if (renderData->yPosition >= 1100) return;
+		
 		renderComponent->Render(pHDC, renderData);
 	}
 }
@@ -58,8 +60,14 @@ void Pawn::SetPosition(const std::pair<UINT8, UINT8> inPosition, const std::pair
 	UpdateRenderData(inMainPlayerPosition);
 }
 
+void Pawn::SetOnlyActorPositionNotUpdateRenderData(const std::pair<UINT8, UINT8> inPosition)
+{
+	xPosition = inPosition.first;
+	yPosition = inPosition.second;
+}
+
 void Pawn::UpdateRenderData(const std::pair<UINT8, UINT8> inMainPlayerPosition)
 {
-	renderData->xPosition = (xPosition - inMainPlayerPosition.second) * BLOCK_WIDTH_SIZE;
-	renderData->yPosition = (yPosition - inMainPlayerPosition.second) * BLOCK_HEIGHT_SIZE;
+	renderData->xPosition = (xPosition - inMainPlayerPosition.first) * GLOBAL_DEFINE::BLOCK_WIDTH_SIZE + GLOBAL_DEFINE::PLAY_FRAME_HALF_WIDTH;
+	renderData->yPosition = (yPosition - inMainPlayerPosition.second) * GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE + GLOBAL_DEFINE::PLAY_FRAME_HALF_HEIGHT;
 }
