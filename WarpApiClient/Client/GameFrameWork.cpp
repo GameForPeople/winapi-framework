@@ -178,7 +178,7 @@ void WGameFramework::RecvLoginOK(const char* pBufferStart)
 	myClientKey = static_cast<_ClientKeyType>(pBufferStart[2]);
 
 #ifdef _DEV_MODE_
-	std::cout << "[RECV] 로그인이 성공했습니다. 받은 키값은 : "<< myClientKey << "\n" ;
+	std::cout << "[RECV] 로그인에 성공했습니다. 나의 키값은 : "<< (int)myClientKey << "\n" ;
 #endif
 }
 
@@ -197,10 +197,6 @@ void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 		{
 			originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
 		}
-
-#ifdef _DEV_MODE_
-		std::cout << "[RECV] 내캐릭터가 생성됩니다 " << std::endl;
-#endif
 
 		playerCharacter = std::make_unique<Pawn>(originPlayerModel,
 			RenderData(350, 350, 70, 70, COLOR::_RED), packet.x, packet.y);
@@ -227,7 +223,7 @@ void WGameFramework::RecvRemovePlayer(const char* pBufferStart)
 	RemovePlayer packet(pBufferStart[2]);
 
 #ifdef _DEV_MODE_
-	std::cout << "[RECV] 캐릭터를 제거합니다. 키값은 : " << packet.id << "\n";
+	std::cout << "[RECV] 캐릭터를 제거합니다. 키값은 : " << (int)(packet.id) << "\n";
 #endif
 
 	otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
@@ -249,13 +245,13 @@ void WGameFramework::RecvPosition(const char* pBufferStart)
 	Position packet(pBufferStart[2], pBufferStart[3], pBufferStart[4]);
 
 #ifdef _DEV_MODE_
-	std::cout << "[RECV] 캐릭터가 이동합니다. 키값은 : " << packet.id << "위치 x, y는 : " << packet.x << " " << packet.y << "\n";
+	std::cout << "[RECV] 캐릭터가 이동합니다. 키값은 : " << (int)packet.id << "위치 x, y는 : " << (int)packet.x << " " << (int)packet.y << "\n";
 #endif
 
 	if (myClientKey == packet.id)
 	{
 #ifdef _DEV_MODE_
-		std::cout << "내 캐릭터가 이동합니다. 위치 x, y는 : " << packet.x << " " << packet.y << "\n";
+		//std::cout << "내 캐릭터가 이동합니다. 위치 x, y는 : " << packet.x << " " << packet.y << "\n";
 #endif
 		playerCharacter->SetOnlyActorPositionNotUpdateRenderData(std::make_pair(packet.x, packet.y));
 		UpdateOtherClient();
@@ -285,7 +281,7 @@ void WGameFramework::UpdateOtherClient()
 void WGameFramework::UpdateBackgroundActor()
 {
 #ifdef _DEV_MODE_
-	std::cout << "backgroundActorCont의 위치를 갱신합니다." << "\n";
+	//std::cout << "backgroundActorCont의 위치를 갱신합니다." << "\n";
 #endif
 	for (auto iter = backgroundActorCont.begin(); iter != backgroundActorCont.end(); ++iter)
 	{

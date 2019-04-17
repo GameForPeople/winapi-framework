@@ -34,6 +34,8 @@ NetworkManager::NetworkManager(const std::string_view& inIPAddress, WGameFramewo
 
 NetworkManager::~NetworkManager()
 {
+	workerThread.join();
+
 	pGameFramework = nullptr;
 
 	delete recvMemoryUnit;
@@ -70,10 +72,11 @@ void NetworkManager::InitNetwork()
 	if (int retVal = connect(socket, (SOCKADDR*)& serverAddr, sizeof(serverAddr))
 		; retVal == SOCKET_ERROR) ERROR_QUIT(L"bind()");
 
+	std::cout << "[CONNECT] 서버에 정상적으로 연결되었습니다." << std::endl;
+
 	// 8. 리시브 온!
 	RecvPacket();
 
-	std::cout << "[정상적으로 연결되었습니다.]" << std::endl;
 }
 
 DWORD WINAPI NetworkManager::StartWorkerThread(LPVOID arg)
@@ -250,7 +253,7 @@ void NetworkManager::ProcessLoadedPacket()
 		pGameFramework->RecvPosition(loadedBuf);
 		break;
 	default:
-		std::cout << "정의되지 않은 프로토콜을 받았습니다. \n";
+		std::cout << "[RECV] 정의되지 않은 프로토콜을 받았습니다. 확인해주세요 \n";
 		break;
 	}
 }
@@ -267,7 +270,7 @@ void NetworkManager::AfterSend(MemoryUnit* pMemoryUnit)
 void NetworkManager::SendMoveData(const BYTE /*DIRECTION*/ inDirection)
 {
 #ifdef _DEV_MODE_
-	std::cout << "[SEND] 데이터를 전송합니다.. 보낼 키값은 : MOVE,  방향은" << (int)inDirection << "\n";
+	std::cout << "[SEND] 데이터를 전송합니다. 보낼 키값은 : MOVE,  방향은" << (int)inDirection << "\n";
 #endif
 	PACKET_DATA::CS::Move packet(inDirection);
 	SendPacket(reinterpret_cast<char*>(&packet));
