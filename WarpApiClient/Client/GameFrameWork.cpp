@@ -9,28 +9,20 @@
 */
 
 #include "stdafx.h"
-
 #include "ClientDefine.h"
-
-#include "NetworkManager.h"
 
 #include "Pawn.h"
 
+#include "NetworkManager.h"
 #include "BaseModel.h"
-#include "TransparentModel.h"
-#include "StretchModel.h"
+#include "RenderModelManager.h"
 
 #include "GameFramework.h"
 
 WGameFramework::WGameFramework(const std::string_view& inIPAddress)
 	: m_hWnd()
-	, tickCount()
 	, networkManager(nullptr)
-	, originPlayerModel(nullptr)
-	, originOtherPlayerModel(nullptr)
-	, originBackgroundModel(nullptr)
-	, coverUIModel(nullptr)
-	, broadcastAreaModel(nullptr)
+	, renderModelManager(nullptr)
 	, playerCharacter(nullptr)
 	, otherPlayerCont()
 	, otherPlayerContLock()
@@ -45,42 +37,16 @@ WGameFramework::WGameFramework(const std::string_view& inIPAddress)
 
 WGameFramework::~WGameFramework()
 {
-	delete originPlayerModel;
-	delete originOtherPlayerModel;
-	delete originBackgroundModel;
-
-	delete coverUIModel;
-	delete broadcastAreaModel;
-
 	otherPlayerCont.clear();
-
-	/* auto */
-	//playerCharacter.reset();
-	//backgroundActor.reset();
 }
-
-//void WGameFramework::Reset()
-//{
-//}
-
-//void WGameFramework::Clear()
-//{
-//}
 
 void WGameFramework::Create(HWND hWnd)
 {
 	m_hWnd = hWnd;
 
-	//build Object
-	originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
-	originOtherPlayerModel = new TransparentModel(L"Resource/Image/Image_OtherCharacter.png");
-	originBackgroundModel = new StretchModel(L"Resource/Image/Image_New_Background.png");
-	coverUIModel = new StretchModel(L"Resource/Image/Image_Cover.png");
-	broadcastAreaModel = new TransparentModel(L"Resource/Image/Image_BroadcastArea.png");
-	//for( int i = 0; i < otherPlayerArr.size(); ++i)
-	//	otherPlayerArr[i] = std::make_unique<Pawn>(originOtherPlayerModel,
-	//		RenderData(0, 0, 100, 100, RGB(255, 0, 0)), false);
-	
+	renderModelManager = std::make_unique<RenderModelManager>();
+	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
+
 	const int tempBackgroundCount = 13;
 	backgroundActorCont.reserve(tempBackgroundCount);
 	
@@ -94,14 +60,14 @@ void WGameFramework::Create(HWND hWnd)
 	{
 		for (int j = 0; j < tempBackgroundCount; ++j)
 		{
-			backgroundActorCont[i].emplace_back(std::make_unique<Pawn>(originBackgroundModel, RenderData(0, 0, 560, 560), i * 8, j * 8 ));
+			backgroundActorCont[i].emplace_back(
+				std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND)
+					, RenderData(0, 0, 560, 560), i * 8, j * 8 ));
 		}
 	}
 
-	coverUI = std::make_unique<BaseActor>(coverUIModel, RenderData(770, 0, 220, 800));
-	broadcastAreaUI = std::make_unique<BaseActor>(broadcastAreaModel, RenderData(139, 139, 494, 494, COLOR::_WHITE));
-
-	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
+	coverUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::COVER_UI), RenderData(770, 0, 220, 800));
+	broadcastAreaUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BROADCAST_UI), RenderData(139, 139, 494, 494, COLOR::_WHITE));
 }
 
 void WGameFramework::OnDraw(HDC hdc)
@@ -193,12 +159,7 @@ void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 
 	if (myClientKey == packet.id)
 	{
-		if (originPlayerModel == nullptr)
-		{
-			originPlayerModel = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
-		}
-
-		playerCharacter = std::make_unique<Pawn>(originPlayerModel,
+		playerCharacter = std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::PLAYER),
 			RenderData(350, 350, 70, 70, COLOR::_RED), packet.x, packet.y);
 
 		UpdateBackgroundActor();
@@ -208,7 +169,7 @@ void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 		otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
 		// 안녕! 새로운 플레이어!
 		otherPlayerCont.emplace_back(
-			std::make_pair(packet.id, std::make_unique<Pawn>(originOtherPlayerModel,
+			std::make_pair(packet.id, std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::OTHER_PLAYER),
 				RenderData(0, 0, 70, 70, COLOR::_RED), packet.x, packet.y)
 			)
 		).second->UpdateRenderData(playerCharacter->GetPosition());
@@ -292,19 +253,3 @@ void WGameFramework::UpdateBackgroundActor()
 	}
 }
 
-/*
-void WGameFramework::SetCharactersLocation(const std::pair<std::array<std::pair<UINT8, UINT8>, GLOBAL_DEFINE::MAX_CLIENT + 1>, int> inCont, const bool inMyCharacterInclude)
-{
-	auto[pRecvCharacterPositionArr, connectedPlayerCount] = inCont;
-
-	if(inMyCharacterInclude)
-		playerCharacter->SetPosition(pRecvCharacterPositionArr[0]);
-
-	for (int i = 0; i < connectedPlayerCount - 1; ++i)
-	{
-		otherPlayerArr[i]->SetPosition(pRecvCharacterPositionArr[i + 1]);
-		otherPlayerArr[i]->SetRender(true);
-	}
-	for (int i = connectedPlayerCount - 1; i < GLOBAL_DEFINE::MAX_CLIENT + 1; ++i) otherPlayerArr[i]->SetRender(false);
-}
-*/

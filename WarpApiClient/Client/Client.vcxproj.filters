@@ -15,14 +15,17 @@
     <Filter Include="GameFramework">
       <UniqueIdentifier>{3e2eaf91-a8f1-4b89-aafe-d4925852b1f2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="RenderModel">
-      <UniqueIdentifier>{f37d74be-d123-4e03-b8b6-d894856a8332}</UniqueIdentifier>
-    </Filter>
     <Filter Include="NetworkManager">
       <UniqueIdentifier>{9c96bcf4-29e1-4a86-8d86-244f20eb74c9}</UniqueIdentifier>
     </Filter>
     <Filter Include="ObjectClass">
       <UniqueIdentifier>{1334b0b6-4b2f-488a-b304-7959ee468803}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderModelManager">
+      <UniqueIdentifier>{f37d74be-d123-4e03-b8b6-d894856a8332}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderModelManager\RenderModel">
+      <UniqueIdentifier>{da8e3de5-d3be-4ae2-b2c4-b787b2fb7320}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -38,23 +41,11 @@
     <ClInclude Include="GameFramework.h">
       <Filter>GameFramework</Filter>
     </ClInclude>
-    <ClInclude Include="BaseModel.h">
-      <Filter>RenderModel</Filter>
-    </ClInclude>
     <ClInclude Include="BaseActor.h">
       <Filter>ObjectClass</Filter>
     </ClInclude>
     <ClInclude Include="Pawn.h">
       <Filter>ObjectClass</Filter>
-    </ClInclude>
-    <ClInclude Include="TransparentModel.h">
-      <Filter>RenderModel</Filter>
-    </ClInclude>
-    <ClInclude Include="BitModel.h">
-      <Filter>RenderModel</Filter>
-    </ClInclude>
-    <ClInclude Include="StretchModel.h">
-      <Filter>RenderModel</Filter>
     </ClInclude>
     <ClInclude Include="NetworkManager.h">
       <Filter>NetworkManager</Filter>
@@ -69,28 +60,31 @@
     <ClInclude Include="MemoryUnit.h">
       <Filter>NetworkManager</Filter>
     </ClInclude>
+    <ClInclude Include="RenderModelManager.h">
+      <Filter>RenderModelManager</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseModel.h">
+      <Filter>RenderModelManager\RenderModel</Filter>
+    </ClInclude>
+    <ClInclude Include="BitModel.h">
+      <Filter>RenderModelManager\RenderModel</Filter>
+    </ClInclude>
+    <ClInclude Include="StretchModel.h">
+      <Filter>RenderModelManager\RenderModel</Filter>
+    </ClInclude>
+    <ClInclude Include="TransparentModel.h">
+      <Filter>RenderModelManager\RenderModel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameFramework.cpp">
       <Filter>GameFramework</Filter>
-    </ClCompile>
-    <ClCompile Include="BaseModel.cpp">
-      <Filter>RenderModel</Filter>
     </ClCompile>
     <ClCompile Include="BaseActor.cpp">
       <Filter>ObjectClass</Filter>
     </ClCompile>
     <ClCompile Include="Pawn.cpp">
       <Filter>ObjectClass</Filter>
-    </ClCompile>
-    <ClCompile Include="TransparentModel.cpp">
-      <Filter>RenderModel</Filter>
-    </ClCompile>
-    <ClCompile Include="BitModel.cpp">
-      <Filter>RenderModel</Filter>
-    </ClCompile>
-    <ClCompile Include="StretchModel.cpp">
-      <Filter>RenderModel</Filter>
     </ClCompile>
     <ClCompile Include="NetworkManager.cpp">
       <Filter>NetworkManager</Filter>
@@ -107,6 +101,21 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="MemoryUnit.cpp">
       <Filter>NetworkManager</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderModelManager.cpp">
+      <Filter>RenderModelManager</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseModel.cpp">
+      <Filter>RenderModelManager\RenderModel</Filter>
+    </ClCompile>
+    <ClCompile Include="BitModel.cpp">
+      <Filter>RenderModelManager\RenderModel</Filter>
+    </ClCompile>
+    <ClCompile Include="StretchModel.cpp">
+      <Filter>RenderModelManager\RenderModel</Filter>
+    </ClCompile>
+    <ClCompile Include="TransparentModel.cpp">
+      <Filter>RenderModelManager\RenderModel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

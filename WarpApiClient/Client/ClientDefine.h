@@ -40,6 +40,16 @@ namespace COLOR
 	constexpr DWORD _BLACK = RGB(0, 0, 0);
 }
 
+enum class RENDER_MODEL_TYPE : BYTE
+{
+	PLAYER = 0x00,
+	OTHER_PLAYER = 0x01,
+	BACKGROUND = 0x02,
+	COVER_UI = 0x03,
+	BROADCAST_UI = 0x04,
+	ENUM_SIZE
+};
+
 // KeyBoard
 enum class VK_KEY
 {

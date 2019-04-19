@@ -39,13 +39,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 #pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console") 
 #endif
 	gGameFramework = std::make_unique<WGameFramework>(
-		[/* void */]() noexcept(false) -> const std::string
+		[/* void */]() noexcept(false) -> const std::string /*== IpAddress*/
 			{
 				std::cout << "\n"
-					<< "	희망하시는 IP 주소를 선택하세요. \n"
+					<< "	접속을 희망하는 IP 주소를 선택하세요. \n"
 					<< "		1. Local Host (127.0.0.1) \n"
 					<< "		2. 직접 입력 \n"
-					<< "			==> ";
+					<< "								==> ";
 
 				int inputtedIPType{};
 				std::cin >> inputtedIPType;

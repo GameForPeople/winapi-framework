@@ -55,7 +55,7 @@ namespace GLOBAL_UTIL
 			exit(1);
 		};
 
-		/*_DEPRECATED*/ void ERROR_DISPLAY(const CHAR *msg)
+		/*_DEPRECATED*/ void ERROR_DISPLAY(const WCHAR *msg)
 		{
 			LPVOID lpMsgBuf;
 			FormatMessage(
@@ -68,7 +68,7 @@ namespace GLOBAL_UTIL
 				NULL
 			);
 
-			printf(" [%s]  %s", msg, (LPTSTR)&lpMsgBuf);
+			std::cout << "[ERROR : " << msg << "] " << (LPTSTR)&lpMsgBuf;
 			LocalFree(lpMsgBuf);
 		};
 	}
