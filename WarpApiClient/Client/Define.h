@@ -23,7 +23,7 @@
 
 
 //--------------------- for DEV_MODE
-#define _DEV_MODE_
+//#define _DEV_MODE_
 //---------------------
 
 /*
@@ -54,11 +54,8 @@ namespace PACKET_TYPE
 	{
 		enum
 		{
-			MOVE,
-			//LEFT,
-			//UP,
-			//RIGHT,
-			//DOWN,
+			MOVE, 	//LEFT, //UP, //RIGHT, //DOWN,
+			CHAT,	// CS::CHAT와 SC::CHAT는 동일해야합니다.
 			ENUM_SIZE
 		};
 	}
@@ -67,10 +64,11 @@ namespace PACKET_TYPE
 	{
 		enum
 		{
+			POSITION,
+			CHAT,	// CS::CHAT와 SC::CHAT는 동일해야합니다.
 			LOGIN_OK,
 			PUT_PLAYER,
 			REMOVE_PLAYER,
-			POSITION,
 			ENUM_SIZE
 		};
 	}
@@ -86,37 +84,12 @@ namespace PACKET_DATA
 	namespace CLIENT_TO_SERVER
 	{
 		struct Move {
-			char size;
-			char type;
+			const char size;
+			const char type;
 			char direction;
 
 			Move(char inDirection) noexcept;
 		};
-		/*
-		struct Left
-		{
-			char size;
-			char type;
-		};
-
-		struct Up
-		{
-			char size;
-			char type;
-		};
-
-		struct Right
-		{
-			char size;
-			char type;
-		};
-
-		struct Down
-		{
-			char size;
-			char type;
-		};
-		*/
 	}
 
 	namespace SERVER_TO_CLIENT
@@ -160,6 +133,22 @@ namespace PACKET_DATA
 
 			Position(const char inMovedClientId, const char inX, const char inY) noexcept;
 		};
+
+		struct Chat {	// 해당 구조체는 서버 코드에서 사용되지 않습니다.
+			char size;	// Fixed - 1	0
+			const char type;	// Fixed - 1	1
+			char nickNameLength;	// 1	2
+			std::wstring nickName;	// 1	
+			std::wstring message;
+
+			//message[0] = Length;				//Fixed
+			//message[1] = type;					//Fixed
+			//message[2] = nickNameLength;
+			//message[3] ~message[3 + nickNameLength * 2] = Nickname;
+			//message[3 + nickNameLength * 2 + 1] ~message[Length] = ChatMessage;
+
+			Chat(const char* pBufferStart);
+		};
 	}
 
 #pragma pack(pop)
@@ -180,8 +169,12 @@ namespace DIRECTION
 	};
 }
 
-namespace UNICODE_UTIL {
+namespace UNICODE_UTIL
+{
 	void SetLocaleToKorean();
+
+	_NODISCARD std::string WStringToString(std::wstring& InWstring);
+	_NODISCARD std::wstring StringToWString(std::string& InString);
 }
 
 namespace GLOBAL_DEFINE

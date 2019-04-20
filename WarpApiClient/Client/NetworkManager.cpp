@@ -252,6 +252,9 @@ void NetworkManager::ProcessLoadedPacket()
 	case SC::POSITION:
 		pGameFramework->RecvPosition(loadedBuf);
 		break;
+	case SC::CHAT:
+		pGameFramework->RecvChat(loadedBuf);
+		break;
 	default:
 		std::cout << "[RECV] 정의되지 않은 프로토콜을 받았습니다. 확인해주세요 \n";
 		break;

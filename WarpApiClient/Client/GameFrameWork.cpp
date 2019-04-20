@@ -231,6 +231,12 @@ void WGameFramework::RecvPosition(const char* pBufferStart)
 	}
 }
 
+void WGameFramework::RecvChat(const char* pBufferStart)
+{
+	using namespace PACKET_DATA::SC;
+	Chat packet(pBufferStart);
+}
+
 void WGameFramework::UpdateOtherClient()
 {
 	for (auto iter = otherPlayerCont.begin(); iter != otherPlayerCont.end(); ++iter)
