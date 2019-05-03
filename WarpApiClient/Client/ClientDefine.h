@@ -16,8 +16,8 @@ namespace GLOBAL_DEFINE
 	constexpr USHORT MAX_SIZE_OF_RECV{ 100 };		//Recv 한번에 받을 수 있는 최대 사이즈
 	constexpr USHORT MAX_SIZE_OF_SEND{ 10 };		//sizeof(PACKET_DATA::CLIENT_TO_SERVER::Down);		//Recv 한번에 받을 수 있는 최대 사이즈
 
-	constexpr UINT8 BLOCK_WIDTH_SIZE{ 70 };
-	constexpr UINT8 BLOCK_HEIGHT_SIZE{ 70 };
+	constexpr UINT8 BLOCK_WIDTH_SIZE{ 40 };
+	constexpr UINT8 BLOCK_HEIGHT_SIZE{ 40 };
 }
 
 namespace ERROR_HANDLING {
@@ -47,6 +47,7 @@ enum class RENDER_MODEL_TYPE : BYTE
 	BACKGROUND = 0x02,
 	COVER_UI = 0x03,
 	BROADCAST_UI = 0x04,
+	MONSTER = 0x05,
 	ENUM_SIZE
 };
 

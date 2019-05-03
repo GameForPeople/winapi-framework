@@ -63,7 +63,7 @@ void NetworkManager::InitNetwork()
 	ZeroMemory(&serverAddr, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = inet_addr(ipAddress.c_str());
-	serverAddr.sin_port = htons(GLOBAL_DEFINE::SERVER_PORT);
+	serverAddr.sin_port = htons(GLOBAL_DEFINE::MAIN_SERVER_PORT);
 
 	// 6. 워커 쓰레드 생성 및 IOCP 등록
 	workerThread = std::thread{ StartWorkerThread, (LPVOID)this };
@@ -240,20 +240,17 @@ void NetworkManager::ProcessLoadedPacket()
 
 	switch (loadedBuf[1])
 	{
-	case SC::LOGIN_OK:
+	case MAIN_TO_CLIENT::LOGIN_OK:
 		pGameFramework->RecvLoginOK(loadedBuf);
 		break;
-	case SC::PUT_PLAYER:
+	case MAIN_TO_CLIENT::PUT_PLAYER:
 		pGameFramework->RecvPutPlayer(loadedBuf);
 		break;
-	case SC::REMOVE_PLAYER:
+	case MAIN_TO_CLIENT::REMOVE_PLAYER:
 		pGameFramework->RecvRemovePlayer(loadedBuf);
 		break;
-	case SC::POSITION:
+	case MAIN_TO_CLIENT::POSITION:
 		pGameFramework->RecvPosition(loadedBuf);
-		break;
-	case SC::CHAT:
-		pGameFramework->RecvChat(loadedBuf);
 		break;
 	default:
 		std::cout << "[RECV] 정의되지 않은 프로토콜을 받았습니다. 확인해주세요 \n";
@@ -275,6 +272,6 @@ void NetworkManager::SendMoveData(const BYTE /*DIRECTION*/ inDirection)
 #ifdef _DEV_MODE_
 	std::cout << "[SEND] 데이터를 전송합니다. 보낼 키값은 : MOVE,  방향은" << (int)inDirection << "\n";
 #endif
-	PACKET_DATA::CS::Move packet(inDirection);
+	PACKET_DATA::CLIENT_TO_MAIN::Move packet(inDirection);
 	SendPacket(reinterpret_cast<char*>(&packet));
 }

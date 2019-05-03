@@ -47,7 +47,7 @@ void WGameFramework::Create(HWND hWnd)
 	renderModelManager = std::make_unique<RenderModelManager>();
 	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
 
-	const int tempBackgroundCount = 13;
+	const int tempBackgroundCount = 40;
 	backgroundActorCont.reserve(tempBackgroundCount);
 	
 	for (int i = 0; i < tempBackgroundCount; ++i) 
@@ -62,7 +62,7 @@ void WGameFramework::Create(HWND hWnd)
 		{
 			backgroundActorCont[i].emplace_back(
 				std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND)
-					, RenderData(0, 0, 560, 560), i * 8, j * 8 ));
+					, RenderData(0, 0, 800, 800), i * 20, j * 20));
 		}
 	}
 
@@ -85,12 +85,15 @@ void WGameFramework::OnDraw(HDC hdc)
 	for (auto iter = otherPlayerCont.cbegin(); iter != otherPlayerCont.cend(); ++iter) (iter->second)->Render(hdc);
 	otherPlayerContLock.unlock(); //------------------------------------------------0
 
+	monsterContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
+	for (auto iter = monsterCont.cbegin(); iter != monsterCont.cend(); ++iter) (iter->second)->Render(hdc);
+	monsterContLock.unlock(); //------------------------------------------------0
+
 	if(playerCharacter != nullptr) playerCharacter->Render(hdc);
 
 	coverUI->Render(hdc);
 
 	broadcastAreaUI->Render(hdc);
-
 }
 
 void WGameFramework::OnUpdate(const float frameTime)
@@ -150,7 +153,7 @@ void WGameFramework::RecvLoginOK(const char* pBufferStart)
 
 void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 {
-	using namespace PACKET_DATA::SC;
+	using namespace PACKET_DATA::MAIN_TO_CLIENT;
 	PutPlayer packet(pBufferStart[2], pBufferStart[3], pBufferStart[4]);
 
 #ifdef _DEV_MODE_
@@ -180,7 +183,7 @@ void WGameFramework::RecvPutPlayer(const char* pBufferStart)
 
 void WGameFramework::RecvRemovePlayer(const char* pBufferStart)
 {
-	using namespace PACKET_DATA::SC;
+	using namespace PACKET_DATA::MAIN_TO_CLIENT;
 	RemovePlayer packet(pBufferStart[2]);
 
 #ifdef _DEV_MODE_
@@ -202,7 +205,7 @@ void WGameFramework::RecvRemovePlayer(const char* pBufferStart)
 
 void WGameFramework::RecvPosition(const char* pBufferStart)
 {
-	using namespace PACKET_DATA::SC;
+	using namespace PACKET_DATA::MAIN_TO_CLIENT;
 	Position packet(pBufferStart[2], pBufferStart[3], pBufferStart[4]);
 
 #ifdef _DEV_MODE_
@@ -215,7 +218,7 @@ void WGameFramework::RecvPosition(const char* pBufferStart)
 		//std::cout << "내 캐릭터가 이동합니다. 위치 x, y는 : " << packet.x << " " << packet.y << "\n";
 #endif
 		playerCharacter->SetOnlyActorPositionNotUpdateRenderData(std::make_pair(packet.x, packet.y));
-		UpdateOtherClient();
+		UpdateOtherObject();
 		UpdateBackgroundActor();
 	}
 	else
@@ -233,13 +236,17 @@ void WGameFramework::RecvPosition(const char* pBufferStart)
 
 void WGameFramework::RecvChat(const char* pBufferStart)
 {
-	using namespace PACKET_DATA::SC;
-	Chat packet(pBufferStart);
+	//using namespace PACKET_DATA::;
+	//Chat packet(pBufferStart);
 }
 
-void WGameFramework::UpdateOtherClient()
+void WGameFramework::UpdateOtherObject()
 {
 	for (auto iter = otherPlayerCont.begin(); iter != otherPlayerCont.end(); ++iter)
+	{
+		(iter->second)->UpdateRenderData(playerCharacter->GetPosition());
+	}
+	for (auto iter = monsterCont.begin(); iter != monsterCont.end(); ++iter)
 	{
 		(iter->second)->UpdateRenderData(playerCharacter->GetPosition());
 	}

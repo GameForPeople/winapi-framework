@@ -18,9 +18,10 @@ RenderModelManager::RenderModelManager()
 	
 	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::PLAYER)] = new TransparentModel(L"Resource/Image/Image_PlayerCharacter.png");
 	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::OTHER_PLAYER)] = new TransparentModel(L"Resource/Image/Image_OtherCharacter.png");
-	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::BACKGROUND)] = new StretchModel(L"Resource/Image/Image_New_Background.png");
+	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::BACKGROUND)] = new StretchModel(L"Resource/Image/20X20_Background.png");
 	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::COVER_UI)] = new StretchModel(L"Resource/Image/Image_Cover.png");
 	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::BROADCAST_UI)] = new TransparentModel(L"Resource/Image/Image_BroadcastArea.png");
+	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::MONSTER)] = new TransparentModel(L"Resource/Image/Image_Monster.png");
 
 	assert(
 		[/* void */](const std::vector<BaseModel*>& inRenderModelCont) noexcept -> bool 
