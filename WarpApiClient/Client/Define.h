@@ -9,7 +9,7 @@
 	#2. 기타 문의는, KoreaGameMaker@gmail.com으로 부탁드립니다. 감사합니다 :)
 */
 
-#pragma once
+//#define _DEV_MODE_
 
 /*
 	Define.h
@@ -101,9 +101,6 @@ namespace PACKET_TYPE
 
 namespace PACKET_DATA
 {
-	using _KeyType = unsigned int;
-	using _PosType = unsigned short;
-
 #pragma pack(push, 1)
 
 	namespace CLIENT_TO_MAIN
@@ -149,40 +146,40 @@ namespace PACKET_DATA
 		{
 			const char size;
 			const char type;
-			_KeyType id;
+			UINT id;
 
-			LoginOk(const _KeyType inNewId) noexcept;
+			LoginOk(const UINT inNewId) noexcept;
 		};
 
 		struct PutPlayer
 		{
 			const char size;
 			const char type;
-			_KeyType id;
-			_PosType x;
-			_PosType y;
+			UINT id;
+			USHORT x;
+			USHORT y;
 
-			PutPlayer(const _KeyType inMovedClientId, const _PosType inX, const _PosType inY) noexcept;
+			PutPlayer(const UINT inMovedClientId, const USHORT inX, const USHORT inY) noexcept;
 		};
 
 		struct RemovePlayer
 		{
 			const char size;
 			const char type;
-			_KeyType id;
+			UINT id;
 
-			RemovePlayer(const _KeyType inRemovedClientID) noexcept;
+			RemovePlayer(const UINT inRemovedClientID) noexcept;
 		};
 
 		struct Position
 		{
 			const char size;
 			const char type;
-			_KeyType id;
-			_PosType x;
-			_PosType y;
+			UINT id;
+			USHORT x;
+			USHORT y;
 
-			Position(const _KeyType inMovedClientId, const _PosType inX, const _PosType inY) noexcept;
+			Position(const UINT inMovedClientId, const USHORT inX, const USHORT inY) noexcept;
 		};
 	}
 
@@ -229,21 +226,22 @@ namespace GLOBAL_DEFINE
 	constexpr USHORT MAX_WIDTH = 800;
 }
 
-enum class OBJECT_TYPE : BYTE
-{
-	PLAYER,
-	MONSTER,
-	NPC
-};
-
 namespace BIT_CONVERTER
 {
 	constexpr BYTE SEND_BYTE = (1 << 7);
 	constexpr unsigned int NOT_PLAYER_INT = (1 << 31);	// 0일때는 플레이어 바이트, 1일때는 2차검사 필요.
 	constexpr unsigned int NPC_INT = (1 << 30);	// 0일 때는 몬스터, 1일 때는 NPC
-	constexpr unsigned int REAL_INT = 0x3fffffff;	// 0일 때는 몬스터, 1일 때는 NPC
+	constexpr unsigned int REAL_INT = 0x3fffffff;	// 0, 1 비트 마스크를 씌울 때 사용하는 변수.
+
+	enum class OBJECT_TYPE : BYTE
+	{
+		PLAYER,
+		MONSTER,
+		NPC
+	};
 
 	std::pair<OBJECT_TYPE, unsigned int> WhatIsYourTypeAndRealKey(unsigned int) noexcept;
+	unsigned int MakeMonsterKey(unsigned int) noexcept;
 
 	/*_NODISCARD*/ BYTE MakeSendPacket(const BYTE inPacketType) noexcept;
 	/*_NODISCARD*/ bool GetRecvOrSend(const char inChar) noexcept;

@@ -46,7 +46,6 @@ void WGameFramework::Create(HWND hWnd)
 	m_hWnd = hWnd;
 
 	renderModelManager = std::make_unique<RenderModelManager>();
-	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
 
 	const int tempBackgroundCount = 40;
 	backgroundActorCont.reserve(tempBackgroundCount);
@@ -56,7 +55,7 @@ void WGameFramework::Create(HWND hWnd)
 		backgroundActorCont.emplace_back();
 		backgroundActorCont[i].reserve(tempBackgroundCount);
 	}
-
+	
 	for (int i = 0; i < tempBackgroundCount; ++i)
 	{
 		for (int j = 0; j < tempBackgroundCount; ++j)
@@ -67,28 +66,30 @@ void WGameFramework::Create(HWND hWnd)
 		}
 	}
 
-	coverUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::COVER_UI), RenderData(770, 0, 220, 800));
-	broadcastAreaUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BROADCAST_UI), RenderData(139, 139, 494, 494, COLOR::_WHITE));
+	coverUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::COVER_UI), RenderData(800, 0, 200, 800));
+	broadcastAreaUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BROADCAST_UI), RenderData(70, 70, 600, 600, COLOR::_WHITE));
+	
+	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
 }
 
 void WGameFramework::OnDraw(HDC hdc)
 {
 	// 렌더링 우선순위를 주의해야합니다!
-	for (auto iter = backgroundActorCont.cbegin(); iter != backgroundActorCont.end(); ++iter)
+	for (auto iter = backgroundActorCont.begin(); iter != backgroundActorCont.end(); ++iter)
 	{
-		for (auto inIter = (*iter).cbegin(); inIter != (*iter).cend(); ++inIter)
+		for (auto inIter = (*iter).begin(); inIter != (*iter).end(); ++inIter)
 		{
 			(*inIter)->Render(hdc);
 		}
 	}
 
-	otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
-	for (auto iter = otherPlayerCont.cbegin(); iter != otherPlayerCont.cend(); ++iter) (iter->second)->Render(hdc);
-	otherPlayerContLock.unlock(); //------------------------------------------------0
-
 	monsterContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
 	for (auto iter = monsterCont.cbegin(); iter != monsterCont.cend(); ++iter) (iter->second)->Render(hdc);
 	monsterContLock.unlock(); //------------------------------------------------0
+
+	otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
+	for (auto iter = otherPlayerCont.cbegin(); iter != otherPlayerCont.cend(); ++iter) (iter->second)->Render(hdc);
+	otherPlayerContLock.unlock(); //------------------------------------------------0
 
 	if(playerCharacter != nullptr) playerCharacter->Render(hdc);
 
@@ -103,7 +104,7 @@ void WGameFramework::OnUpdate(const float frameTime)
 
 void WGameFramework::Mouse(UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-#ifdef _DEV_MODE_
+//#ifdef _DEV_MODE_
 	switch (iMessage)
 	{
 		case WM_LBUTTONDOWN:
@@ -111,7 +112,7 @@ void WGameFramework::Mouse(UINT iMessage, WPARAM wParam, LPARAM lParam)
 		default:
 			break;
 	}
-#endif
+//#endif
 }
 
 void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -158,9 +159,9 @@ void WGameFramework::RecvPutPlayer(char* pBufferStart)
 	PutPlayer* packet = reinterpret_cast<PutPlayer *>(pBufferStart);
 
 #ifdef _DEV_MODE_
-	std::cout << "[RECV] 새로운 캐릭터를 생성합니다. 키값은 : " << (int)packet.id << "위치 x, y는 : " << (int)packet.x << " "<< (int)packet.y <<"\n";
+	std::cout << "[RECV] 새로운 캐릭터를 생성합니다. 키값은 : " << (int)packet->id << "위치 x, y는 : " << (int)packet->x << " "<< (int)packet->y <<"\n";
 #endif
-
+	using namespace BIT_CONVERTER;
 	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->id); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
@@ -196,10 +197,10 @@ void WGameFramework::RecvPutPlayer(char* pBufferStart)
 		monsterContLock.unlock(); //------------------------------------------------0
 		break;
 	case OBJECT_TYPE::NPC:
-		std::cout << "야 NPC 없는데 무슨 NPC가 오냐" << std::endl;
+		std::cout << "야 NPC 없는데 무슨 NPC가 오냐 키값 뭔데임마 " << (int)packet->id << " // "<< std::bitset<32>(packet->id) << " // " << realKey << std::endl;
 		break;
 	default:
-		std::cout << "마! 니는 뭐냐" << std::endl;
+		std::cout << "마! 니는 뭐냐 이자식이 " << (int)packet->id << " // " << std::bitset<32>(packet->id) << " // " << realKey << std::endl;
 		break;
 	}
 }
@@ -208,9 +209,9 @@ void WGameFramework::RecvRemovePlayer(char* pBufferStart)
 {
 	using namespace PACKET_DATA::MAIN_TO_CLIENT;
 	RemovePlayer* packet = reinterpret_cast<RemovePlayer *>(pBufferStart);
-
+	using namespace BIT_CONVERTER;
 #ifdef _DEV_MODE_
-	std::cout << "[RECV] 캐릭터를 제거합니다. 키값은 : " << (int)(packet.id) << "\n";
+	std::cout << "[RECV] 캐릭터를 제거합니다. 키값은 : " << (int)(packet->id) << "\n";
 #endif
 	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->id); objectType)
 	{
@@ -233,7 +234,7 @@ void WGameFramework::RecvRemovePlayer(char* pBufferStart)
 		{
 			if (iter->first == realKey)
 			{
-				otherPlayerCont.erase(iter);
+				monsterCont.erase(iter);
 				break;
 			}
 		}
@@ -251,10 +252,12 @@ void WGameFramework::RecvRemovePlayer(char* pBufferStart)
 void WGameFramework::RecvPosition(char* pBufferStart)
 {
 	using namespace PACKET_DATA::MAIN_TO_CLIENT;
+	using namespace BIT_CONVERTER;
+
 	Position* packet = reinterpret_cast<Position *>(pBufferStart);
 
 #ifdef _DEV_MODE_
-	std::cout << "[RECV] 캐릭터가 이동합니다. 키값은 : " << (int)packet.id << "위치 x, y는 : " << (int)packet.x << " " << (int)packet.y << "\n";
+	std::cout << "[RECV] 캐릭터가 이동합니다. 키값은 : " << (unsigned int)packet->id << "위치 x, y는 : " << (int)packet->x << " " << (int)packet->y << "\n";
 #endif
 
 	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->id); objectType)
@@ -282,6 +285,7 @@ void WGameFramework::RecvPosition(char* pBufferStart)
 		}
 		break;
 	case OBJECT_TYPE::MONSTER:
+		monsterContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
 		for (auto iter = monsterCont.begin(); iter != monsterCont.end(); ++iter)
 		{
 			if (iter->first == realKey)
@@ -290,6 +294,7 @@ void WGameFramework::RecvPosition(char* pBufferStart)
 				break;
 			}
 		}
+		monsterContLock.unlock(); //------------------------------------------------0
 		break;
 	default:
 		std::cout << "마! 니는 뭐냐" << std::endl;
@@ -322,7 +327,7 @@ void WGameFramework::UpdateBackgroundActor()
 #endif
 	for (auto iter = backgroundActorCont.begin(); iter != backgroundActorCont.end(); ++iter)
 	{
-		for (auto inIter = (*iter).cbegin(); inIter != (*iter).cend(); ++inIter)
+		for (auto inIter = (*iter).begin(); inIter != (*iter).end(); ++inIter)
 		{
 			(*inIter)->UpdateRenderData(playerCharacter->GetPosition());
 		}

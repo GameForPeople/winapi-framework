@@ -6,7 +6,7 @@
 #include "Pawn.h"
 
 Pawn::Pawn(BaseModel* const inBaseModel, const RenderData& inRenderData,
-	const UINT8 inXPosition, const UINT8 inYPosition)
+	const USHORT inXPosition, const USHORT inYPosition)
 	: BaseActor(inBaseModel, inRenderData)
 	, xPosition(inXPosition), yPosition(inYPosition)
 {
@@ -52,7 +52,7 @@ void Pawn::Render(HDC pHDC)
 	}
 }
 
-void Pawn::SetPosition(const std::pair<UINT8, UINT8> inPosition, const std::pair<UINT8, UINT8> inMainPlayerPosition)
+void Pawn::SetPosition(const std::pair<USHORT, USHORT> inPosition, const std::pair<USHORT, USHORT> inMainPlayerPosition)
 {
 	xPosition = inPosition.first;
 	yPosition = inPosition.second;
@@ -60,13 +60,13 @@ void Pawn::SetPosition(const std::pair<UINT8, UINT8> inPosition, const std::pair
 	UpdateRenderData(inMainPlayerPosition);
 }
 
-void Pawn::SetOnlyActorPositionNotUpdateRenderData(const std::pair<UINT8, UINT8> inPosition)
+void Pawn::SetOnlyActorPositionNotUpdateRenderData(const std::pair<USHORT, USHORT> inPosition)
 {
 	xPosition = inPosition.first;
 	yPosition = inPosition.second;
 }
 
-void Pawn::UpdateRenderData(const std::pair<UINT8, UINT8> inMainPlayerPosition)
+void Pawn::UpdateRenderData(const std::pair<USHORT, USHORT> inMainPlayerPosition)
 {
 	renderData->xPosition = (xPosition - inMainPlayerPosition.first) * GLOBAL_DEFINE::BLOCK_WIDTH_SIZE + GLOBAL_DEFINE::PLAY_FRAME_HALF_WIDTH;
 	renderData->yPosition = (yPosition - inMainPlayerPosition.second) * GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE + GLOBAL_DEFINE::PLAY_FRAME_HALF_HEIGHT;

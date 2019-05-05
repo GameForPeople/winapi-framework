@@ -6,7 +6,7 @@ namespace GLOBAL_DEFINE
 	constexpr UINT8 MAIN_TIMER_FRAME{ 17 };
 
 	constexpr UINT16 FRAME_WIDTH{ 1000 };
-	constexpr UINT16 FRAME_HEIGHT{ 800 };
+	constexpr UINT16 FRAME_HEIGHT{ 830 };
 
 	constexpr UINT16 PLAY_FRAME_HALF_WIDTH{ 350 };
 	constexpr UINT16 PLAY_FRAME_HALF_HEIGHT{ 350 };

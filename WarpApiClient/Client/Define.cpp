@@ -30,7 +30,7 @@ namespace PACKET_DATA
 			message = std::move(UNICODE_UTIL::StringToWString(stringMessage));
 		}
 #endif
-		Chat::Chat(const std::wstring & inNickName, const std::wstring & inMessage)
+		Chat::Chat(const std::wstring& inNickName, const std::wstring& inMessage)
 		{
 			const BYTE nickNameLength = inNickName.size() * 2; // BYTE
 			const BYTE messageLength = inMessage.size() * 2;	//BYTE
@@ -47,24 +47,24 @@ namespace PACKET_DATA
 
 	namespace MAIN_TO_CLIENT
 	{
-		LoginOk::LoginOk(const _KeyType inNewId) noexcept :
+		LoginOk::LoginOk(const UINT inNewId) noexcept :
 			size(sizeof(LoginOk)), type(PACKET_TYPE::MAIN_TO_CLIENT::LOGIN_OK),
 			id(inNewId)
 		{}
 
-		PutPlayer::PutPlayer(const _KeyType inPutClientId, const _PosType inX, const _PosType inY) noexcept :
+		PutPlayer::PutPlayer(const UINT inPutClientId, const USHORT inX, const USHORT inY) noexcept :
 			size(sizeof(PutPlayer)), type(PACKET_TYPE::MAIN_TO_CLIENT::PUT_PLAYER),
 			id(inPutClientId),
 			x(inX),
 			y(inY)
 		{}
 
-		RemovePlayer::RemovePlayer(const _KeyType inRemovedClientID) noexcept :
+		RemovePlayer::RemovePlayer(const UINT inRemovedClientID) noexcept :
 			size(sizeof(RemovePlayer)), type(PACKET_TYPE::MAIN_TO_CLIENT::REMOVE_PLAYER),
 			id(inRemovedClientID)
 		{}
 
-		Position::Position(const _KeyType inMovedClientId, const _PosType inX, const _PosType inY) noexcept :
+		Position::Position(const UINT inMovedClientId, const USHORT inX, const USHORT inY) noexcept :
 			size(sizeof(Position)), type(PACKET_TYPE::MAIN_TO_CLIENT::POSITION),
 			id(inMovedClientId),
 			x(inX),
@@ -125,13 +125,21 @@ namespace BIT_CONVERTER
 	{
 		std::pair<OBJECT_TYPE, unsigned int> retPair;
 
-		if ((inKey | NOT_PLAYER_INT) == inKey) retPair.first = OBJECT_TYPE::PLAYER;
-		else if ((inKey | NPC_INT) == inKey) retPair.first = OBJECT_TYPE::MONSTER;
-		else retPair.first = OBJECT_TYPE::NPC;
+		//if ((inKey & NOT_PLAYER_INT) == inKey) retPair.first = OBJECT_TYPE::PLAYER;
+		//else if ((inKey & NPC_INT) != inKey) retPair.first = OBJECT_TYPE::MONSTER;
+		//else retPair.first = OBJECT_TYPE::NPC;
+		if(inKey < NOT_PLAYER_INT) retPair.first = OBJECT_TYPE::PLAYER;
+		else  if ((inKey < NOT_PLAYER_INT + NPC_INT)) retPair.first = OBJECT_TYPE::MONSTER;
+		else  retPair.first = OBJECT_TYPE::NPC;
 
 		retPair.second = inKey & REAL_INT;
 
 		return retPair;
+	}
+
+	unsigned int MakeMonsterKey(unsigned int inOnlyIndex) noexcept
+	{
+		return (inOnlyIndex | NOT_PLAYER_INT);
 	}
 
 	/*

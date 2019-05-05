@@ -76,7 +76,6 @@ void NetworkManager::InitNetwork()
 
 	// 8. 리시브 온!
 	RecvPacket();
-
 }
 
 DWORD WINAPI NetworkManager::StartWorkerThread(LPVOID arg)
@@ -180,6 +179,8 @@ void NetworkManager::RecvPacket()
 */
 void NetworkManager::AfterRecv(/*MemoryUnit* pClient,*/ int cbTransferred)
 {
+	//std::cout << "패킷 받음 size : " << (int)loadedBuf[0] << " Type : " << (int)loadedBuf[1] << std::endl;
+
 	// 받은 데이터 처리
 	ProcessRecvData(cbTransferred);
 
@@ -216,6 +217,7 @@ void NetworkManager::ProcessRecvData(int restSize)
 			ProcessLoadedPacket();
 
 			//---
+			loadedSize = 0;
 			restSize -= required;
 			pBuf += required;
 			packetSize = 0;
@@ -223,9 +225,10 @@ void NetworkManager::ProcessRecvData(int restSize)
 		// 패킷을 완성할 수 없을 때
 		else
 		{
-			memcpy(loadedBuf, pBuf, restSize);
-			loadedSize = restSize;
-			restSize = 0;
+			memcpy(loadedBuf + loadedSize, pBuf, restSize);
+			loadedSize += restSize;
+			break;
+			//restSize = 0;
 		}
 	}
 }
