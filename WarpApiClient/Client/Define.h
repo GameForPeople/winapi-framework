@@ -9,8 +9,6 @@
 	#2. 기타 문의는, KoreaGameMaker@gmail.com으로 부탁드립니다. 감사합니다 :)
 */
 
-//#define _DEV_MODE_
-
 /*
 	Define.h
 		- 해당 헤더 파일은, 서버와 클라이언트가 공통으로 사용합니다.
@@ -22,6 +20,20 @@
 		- 절대로 네임스페이스 없이, 변수명만으로 사용되는 경우를 방지합니다.
 	!1. enum class, enum의 경우 마지막에 ENUM_SIZE를 포함해야합니다.
 */
+
+namespace GLOBAL_DEFINE
+{
+	constexpr USHORT MAIN_SERVER_PORT = 9000;
+	constexpr USHORT CHAT_SERVER_PORT = 9001;
+	constexpr USHORT MANAGER_SERVER_PORT = 9002;
+	constexpr USHORT QUERY_SERVER_PORT = 9003;
+
+	constexpr USHORT MAX_HEIGHT = 800;
+	constexpr USHORT MAX_WIDTH = 800;
+
+	constexpr BYTE ID_MAX_LEN = 10;
+	constexpr BYTE ID_MAX_SIZE = ID_MAX_LEN * 2;
+}
 
 namespace NETWORK_TYPE
 {
@@ -52,6 +64,7 @@ namespace PACKET_TYPE
 		enum
 		{
 			MOVE, 	//LEFT, //UP, //RIGHT, //DOWN,
+			LOGIN,
 			ENUM_SIZE
 		};
 	}
@@ -73,9 +86,28 @@ namespace PACKET_TYPE
 		{
 			POSITION,
 			LOGIN_OK,
+			LOGIN_FAIL,
 			PUT_PLAYER,
 			REMOVE_PLAYER,
 			ENUM_SIZE
+		};
+	}
+
+	namespace MAIN_TO_QUERY
+	{
+		enum
+		{
+			DEMAND_LOGIN,
+			SAVE_LOCATION
+		};
+	}
+
+	namespace QUERY_TO_MAIN
+	{
+		enum
+		{
+			LOGIN_TRUE,
+			LOGIN_FALSE
 		};
 	}
 
@@ -101,16 +133,30 @@ namespace PACKET_TYPE
 
 namespace PACKET_DATA
 {
+	using _PacketSizeType = const char;
+	using _PacketTypeType = const char;	//? 이름이 뭐 이따구가
+	using _KeyType = unsigned int;	//? 이름이 뭐 이따구가
+	using _PosType = unsigned short;
+	using _CharType = WCHAR;
+
 #pragma pack(push, 1)
 
 	namespace CLIENT_TO_MAIN
 	{
 		struct Move {
-			const char size;
-			const char type;
+			_PacketSizeType size;
+			_PacketTypeType type;
 			char direction;
 
-			Move(char inDirection) noexcept;
+			Move(const char inDirection) noexcept;
+		};
+
+		struct Login {
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_CharType id[GLOBAL_DEFINE::ID_MAX_LEN];
+
+			Login(const _CharType* const pInNickname) noexcept;
 		};
 	}
 
@@ -144,42 +190,79 @@ namespace PACKET_DATA
 	{
 		struct LoginOk
 		{
-			const char size;
-			const char type;
-			UINT id;
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
+			_CharType nickname[GLOBAL_DEFINE::ID_MAX_LEN];
+			_PosType x;
+			_PosType y;
 
-			LoginOk(const UINT inNewId) noexcept;
+			LoginOk(const _KeyType, const _CharType* inNewNickname, const _PosType x, const _PosType y) noexcept;
+		};
+
+		struct LoginFail
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			const char failReason;
+
+			LoginFail(const char inFailReason) noexcept;
 		};
 
 		struct PutPlayer
 		{
-			const char size;
-			const char type;
-			UINT id;
-			USHORT x;
-			USHORT y;
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
+			_PosType x;
+			_PosType y;
 
-			PutPlayer(const UINT inMovedClientId, const USHORT inX, const USHORT inY) noexcept;
+			PutPlayer(const _KeyType inMovedClientKey, const _PosType inX, const _PosType inY) noexcept;
 		};
 
 		struct RemovePlayer
 		{
-			const char size;
-			const char type;
-			UINT id;
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
 
-			RemovePlayer(const UINT inRemovedClientID) noexcept;
+			RemovePlayer(const _KeyType inRemovedClientKey) noexcept;
 		};
 
 		struct Position
 		{
-			const char size;
-			const char type;
-			UINT id;
-			USHORT x;
-			USHORT y;
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
+			_PosType x;
+			_PosType y;
 
-			Position(const UINT inMovedClientId, const USHORT inX, const USHORT inY) noexcept;
+			Position(const _KeyType inMovedClientKey, const _PosType inX, const _PosType inY) noexcept;
+		};
+	}
+
+	namespace MAIN_TO_QUERY
+	{
+		struct DemandLogin
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;	// 나중에 반납할 때, 이 키를 알려줘야함.
+			_CharType id[10];
+			int		pw;
+
+			DemandLogin(const _KeyType, const char* inId, const int);
+		};
+
+		struct SavePosition
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			// 여기는 단방향성이라 Key가 필요없음
+			_CharType id[10];
+			_PosType xPos;
+			_PosType yPos;
+			SavePosition(const _CharType * const, const _PosType, const _PosType);
 		};
 	}
 
@@ -190,6 +273,31 @@ namespace PACKET_DATA
 			// 부하를 줄이기 위해, 채팅은 릴레이 방식으로 활용
 			char message[80];
 			Chat(char*);
+		};
+	}
+
+	namespace QUERY_TO_MAIN
+	{
+		struct LoginTrue
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
+			_CharType nickname[10];
+			_PosType xPos;
+			_PosType yPos;
+
+			LoginTrue(const _KeyType, const _CharType *, const _PosType, const _PosType) noexcept;
+		};
+
+		struct LoginFail
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
+			unsigned char failReason;
+
+			LoginFail(const _KeyType, const unsigned char) noexcept;
 		};
 	}
 
@@ -214,16 +322,6 @@ namespace UNICODE_UTIL
 
 	_NODISCARD std::string WStringToString(const std::wstring& InWstring);
 	_NODISCARD std::wstring StringToWString(const std::string& InString);
-}
-
-namespace GLOBAL_DEFINE
-{
-	constexpr USHORT MAIN_SERVER_PORT = 9000;
-	constexpr USHORT CHAT_SERVER_PORT = 9001;
-	constexpr USHORT MANAGER_SERVER_PORT = 9002;
-
-	constexpr USHORT MAX_HEIGHT = 800;
-	constexpr USHORT MAX_WIDTH = 800;
 }
 
 namespace BIT_CONVERTER

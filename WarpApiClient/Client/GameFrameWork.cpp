@@ -146,11 +146,18 @@ void WGameFramework::RecvLoginOK(char* pBufferStart)
 {
 	using namespace PACKET_DATA::MAIN_TO_CLIENT;
 	LoginOk* packet = reinterpret_cast<LoginOk *>(pBufferStart);
-	myClientKey = packet->id;
+	myClientKey = packet->key;
 
 #ifdef _DEV_MODE_
 	std::cout << "[RECV] 로그인에 성공했습니다. 나의 키값은 : "<< (int)myClientKey << "\n" ;
 #endif
+	//if (myClientKey == realKey)
+	//{
+		playerCharacter = std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::PLAYER),
+			RenderData(350, 350, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y);
+
+		UpdateBackgroundActor();
+	//}
 }
 
 void WGameFramework::RecvPutPlayer(char* pBufferStart)
@@ -162,18 +169,11 @@ void WGameFramework::RecvPutPlayer(char* pBufferStart)
 	std::cout << "[RECV] 새로운 캐릭터를 생성합니다. 키값은 : " << (int)packet->id << "위치 x, y는 : " << (int)packet->x << " "<< (int)packet->y <<"\n";
 #endif
 	using namespace BIT_CONVERTER;
-	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->id); objectType)
+	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
-		if (myClientKey == realKey)
-		{
-			playerCharacter = std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::PLAYER),
-				RenderData(350, 350, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y);
-
-			UpdateBackgroundActor();
-		}
-		else
-		{
+		//else
+		//{
 			otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
 			// 안녕! 새로운 플레이어!
 			otherPlayerCont.emplace_back(
@@ -183,7 +183,7 @@ void WGameFramework::RecvPutPlayer(char* pBufferStart)
 			).second->UpdateRenderData(playerCharacter->GetPosition());
 
 			otherPlayerContLock.unlock(); //------------------------------------------------0
-		}
+		//}
 		break;
 	case OBJECT_TYPE::MONSTER:
 		monsterContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
@@ -197,10 +197,10 @@ void WGameFramework::RecvPutPlayer(char* pBufferStart)
 		monsterContLock.unlock(); //------------------------------------------------0
 		break;
 	case OBJECT_TYPE::NPC:
-		std::cout << "야 NPC 없는데 무슨 NPC가 오냐 키값 뭔데임마 " << (int)packet->id << " // "<< std::bitset<32>(packet->id) << " // " << realKey << std::endl;
+		std::cout << "야 NPC 없는데 무슨 NPC가 오냐 키값 뭔데임마 " << (int)packet->key << " // "<< std::bitset<32>(packet->key) << " // " << realKey << std::endl;
 		break;
 	default:
-		std::cout << "마! 니는 뭐냐 이자식이 " << (int)packet->id << " // " << std::bitset<32>(packet->id) << " // " << realKey << std::endl;
+		std::cout << "마! 니는 뭐냐 이자식이 " << (int)packet->key << " // " << std::bitset<32>(packet->key) << " // " << realKey << std::endl;
 		break;
 	}
 }
@@ -213,7 +213,7 @@ void WGameFramework::RecvRemovePlayer(char* pBufferStart)
 #ifdef _DEV_MODE_
 	std::cout << "[RECV] 캐릭터를 제거합니다. 키값은 : " << (int)(packet->id) << "\n";
 #endif
-	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->id); objectType)
+	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
 		otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
@@ -260,7 +260,7 @@ void WGameFramework::RecvPosition(char* pBufferStart)
 	std::cout << "[RECV] 캐릭터가 이동합니다. 키값은 : " << (unsigned int)packet->id << "위치 x, y는 : " << (int)packet->x << " " << (int)packet->y << "\n";
 #endif
 
-	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->id); objectType)
+	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
 		if (myClientKey == realKey)

@@ -74,6 +74,13 @@ void NetworkManager::InitNetwork()
 
 	std::cout << "[CONNECT] 서버에 정상적으로 연결되었습니다." << std::endl;
 
+	std::wcout << L"ID를 입력해주세요. : ";
+	WCHAR tempID[10]{};
+	wscanf(L"%s", tempID);
+
+	PACKET_DATA::CLIENT_TO_MAIN::Login packet(tempID);
+	SendPacket(reinterpret_cast<char*>(&packet));
+	
 	// 8. 리시브 온!
 	RecvPacket();
 }

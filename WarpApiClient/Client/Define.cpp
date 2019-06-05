@@ -1,15 +1,21 @@
 #include "stdafx.h"
-
 #include "Define.h"
 
 namespace PACKET_DATA
 {
 	namespace CLIENT_TO_MAIN
 	{
-		Move::Move(char inDirection) noexcept :
+		Move::Move(const char inDirection) noexcept :
 			size(sizeof(Move)), type(PACKET_TYPE::CLIENT_TO_MAIN::MOVE),
 			direction(inDirection)
 		{}
+
+		Login::Login(const _CharType* const pInID) noexcept :
+			size(sizeof(Login)), type(PACKET_TYPE::CLIENT_TO_MAIN::LOGIN),
+			id()
+		{
+			memcpy(id, pInID, GLOBAL_DEFINE::ID_MAX_SIZE);
+		}
 	}
 
 	namespace CLIENT_TO_CHAT
@@ -32,8 +38,8 @@ namespace PACKET_DATA
 #endif
 		Chat::Chat(const std::wstring& inNickName, const std::wstring& inMessage)
 		{
-			const BYTE nickNameLength = inNickName.size() * 2; // BYTE
-			const BYTE messageLength = inMessage.size() * 2;	//BYTE
+			const BYTE nickNameLength = static_cast<const BYTE>(inNickName.size() * 2); // BYTE
+			const BYTE messageLength = static_cast<const BYTE>(inMessage.size() * 2);	//BYTE
 
 			message[0] = nickNameLength + messageLength + 4;
 			message[1] = PACKET_TYPE::CLIENT_TO_CHAT::CHAT;
@@ -47,29 +53,55 @@ namespace PACKET_DATA
 
 	namespace MAIN_TO_CLIENT
 	{
-		LoginOk::LoginOk(const UINT inNewId) noexcept :
+		LoginOk::LoginOk(const _KeyType inKey, const _CharType* inNewNickname, const _PosType x, const _PosType y) noexcept :
 			size(sizeof(LoginOk)), type(PACKET_TYPE::MAIN_TO_CLIENT::LOGIN_OK),
-			id(inNewId)
+			key(inKey),
+			nickname(),
+			x(x), y(y)
+		{
+			memcpy(nickname, inNewNickname, GLOBAL_DEFINE::ID_MAX_SIZE);
+		}
+
+		LoginFail::LoginFail(const char inFailReason) noexcept :
+			size(sizeof(LoginFail)), type(PACKET_TYPE::MAIN_TO_CLIENT::LOGIN_FAIL),
+			failReason(inFailReason)
 		{}
 
-		PutPlayer::PutPlayer(const UINT inPutClientId, const USHORT inX, const USHORT inY) noexcept :
+		PutPlayer::PutPlayer(const _KeyType inMovedClientKey, const _PosType inX, const _PosType inY) noexcept :
 			size(sizeof(PutPlayer)), type(PACKET_TYPE::MAIN_TO_CLIENT::PUT_PLAYER),
-			id(inPutClientId),
+			key(inMovedClientKey),
 			x(inX),
 			y(inY)
 		{}
 
-		RemovePlayer::RemovePlayer(const UINT inRemovedClientID) noexcept :
+		RemovePlayer::RemovePlayer(const _KeyType inRemovedClientKey) noexcept :
 			size(sizeof(RemovePlayer)), type(PACKET_TYPE::MAIN_TO_CLIENT::REMOVE_PLAYER),
-			id(inRemovedClientID)
+			key(inRemovedClientKey)
 		{}
 
-		Position::Position(const UINT inMovedClientId, const USHORT inX, const USHORT inY) noexcept :
+		Position::Position(const _KeyType inMovedClientId, const _PosType inX, const _PosType inY) noexcept :
 			size(sizeof(Position)), type(PACKET_TYPE::MAIN_TO_CLIENT::POSITION),
-			id(inMovedClientId),
+			key(inMovedClientId),
 			x(inX),
 			y(inY)
 		{}
+	}
+
+	namespace MAIN_TO_QUERY
+	{
+		DemandLogin::DemandLogin(const _KeyType inKey, const char* inId, int inPw)
+			: size(sizeof(DemandLogin)), type(PACKET_TYPE::MAIN_TO_QUERY::DEMAND_LOGIN),
+			key(inKey), id(), pw(inPw)
+		{
+			memcpy(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
+		}
+
+		SavePosition::SavePosition(const _CharType* const inId, const _PosType inXPos, const _PosType inYPos)
+			: size(sizeof(DemandLogin)), type(PACKET_TYPE::MAIN_TO_QUERY::DEMAND_LOGIN),
+			id(), xPos(inXPos), yPos(inYPos)
+		{
+			memcpy(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
+		}
 	}
 
 	namespace CHAT_TO_CLIENT
@@ -78,6 +110,24 @@ namespace PACKET_DATA
 		{
 			memcpy(message, inPtr, static_cast<BYTE>(inPtr[0]));
 		}
+	}
+
+	namespace QUERY_TO_MAIN
+	{
+		LoginTrue::LoginTrue(const _KeyType inKey, const _CharType* inID, const _PosType inX, const _PosType inY) noexcept :
+			size(sizeof(LoginTrue)), type(PACKET_TYPE::QUERY_TO_MAIN::LOGIN_TRUE),
+			key(inKey),
+			nickname(),
+			xPos(inX), yPos(inY)
+		{
+			memcpy(nickname, inID, 10);
+		}
+
+		LoginFail::LoginFail(const _KeyType inKey, const unsigned char inFailReason) noexcept :
+			size(sizeof(LoginTrue)), type(PACKET_TYPE::QUERY_TO_MAIN::LOGIN_FALSE),
+			key(inKey),
+			failReason(inFailReason)
+		{}
 	}
 }
 
@@ -128,7 +178,7 @@ namespace BIT_CONVERTER
 		//if ((inKey & NOT_PLAYER_INT) == inKey) retPair.first = OBJECT_TYPE::PLAYER;
 		//else if ((inKey & NPC_INT) != inKey) retPair.first = OBJECT_TYPE::MONSTER;
 		//else retPair.first = OBJECT_TYPE::NPC;
-		if(inKey < NOT_PLAYER_INT) retPair.first = OBJECT_TYPE::PLAYER;
+		if (inKey < NOT_PLAYER_INT) retPair.first = OBJECT_TYPE::PLAYER;
 		else  if ((inKey < NOT_PLAYER_INT + NPC_INT)) retPair.first = OBJECT_TYPE::MONSTER;
 		else  retPair.first = OBJECT_TYPE::NPC;
 
