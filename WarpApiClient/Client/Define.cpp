@@ -15,6 +15,7 @@ namespace PACKET_DATA
 			id()
 		{
 			memcpy(id, pInID, GLOBAL_DEFINE::ID_MAX_SIZE);
+			std::wcout << L"id : " << id << L",   pInID : " << pInID << std::endl;
 		}
 	}
 
