@@ -42,11 +42,11 @@ void Pawn::Render(HDC pHDC)
 	if (isRender) 
 	{
 		// ÄÃ¸µ
-		if (renderData->xPosition <= -1000) return;
-		if (renderData->xPosition >= 1000) return;
+		if (renderData->xPosition <= -2000) return;
+		if (renderData->xPosition >= 2000) return;
 
-		if (renderData->yPosition <= -1000) return;
-		if (renderData->yPosition >= 1000) return;
+		if (renderData->yPosition <= -2000) return;
+		if (renderData->yPosition >= 2000) return;
 		
 		renderComponent->Render(pHDC, renderData);
 	}

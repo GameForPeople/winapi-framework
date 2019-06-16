@@ -72,15 +72,39 @@ void NetworkManager::InitNetwork()
 	if (int retVal = connect(socket, (SOCKADDR*)& serverAddr, sizeof(serverAddr))
 		; retVal == SOCKET_ERROR) ERROR_QUIT(L"bind()");
 
-	std::cout << "[CONNECT] 서버에 정상적으로 연결되었습니다." << std::endl;
-
-	std::wcout << L"ID를 입력해주세요. : ";
-	WCHAR tempID[10]{};
-	wscanf(L"%s", tempID);
-
-	PACKET_DATA::CLIENT_TO_MAIN::Login packet(tempID);
-	SendPacket(reinterpret_cast<char*>(&packet));
 	
+	std::cout << "[CONNECT] 서버에 정상적으로 연결되었습니다." << std::endl;
+	std::cout << "로그인은 1번, 회원가입은 2번을 입력해주세요 : " << std::endl;
+
+	int tempInputtedCommand{};
+
+	std::cin >> tempInputtedCommand;
+
+	switch (tempInputtedCommand)
+	{
+	case 1:
+		std::cout << "ID를 입력해주세요 : " << std::endl;
+
+		WCHAR tempID[9]{};
+		wscanf(L"%s", tempID);
+
+		PACKET_DATA::CLIENT_TO_MAIN::Login packet(tempID);
+		SendPacket(reinterpret_cast<char*>(&packet));
+		break;
+	case 2:
+		std::cout << "회원가입을 원하시는 ID를 입력해주세요 : " << std::endl;
+
+		WCHAR tempID[9]{};
+		wscanf(L"%s", tempID);
+
+		std::cout << "원하시는 직업을 선택해주세요. \n   1. 기사 2. 궁수 3. 마녀" << std::endl;
+		int tempInputtedJob{};
+		std::cin >> tempInputtedJob;
+
+		PACKET_DATA::CLIENT_TO_MAIN::Login packet(tempID);
+		SendPacket(reinterpret_cast<char*>(&packet));
+		break;
+	}
 	// 8. 리시브 온!
 	RecvPacket();
 }

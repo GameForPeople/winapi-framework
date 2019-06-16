@@ -47,7 +47,7 @@ void WGameFramework::Create(HWND hWnd)
 
 	renderModelManager = std::make_unique<RenderModelManager>();
 
-	const int tempBackgroundCount = 40;
+	const int tempBackgroundCount = 10;
 	backgroundActorCont.reserve(tempBackgroundCount);
 	
 	for (int i = 0; i < tempBackgroundCount; ++i) 
@@ -60,14 +60,39 @@ void WGameFramework::Create(HWND hWnd)
 	{
 		for (int j = 0; j < tempBackgroundCount; ++j)
 		{
-			backgroundActorCont[i].emplace_back(
-				std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND)
-					, RenderData(0, 0, 800, 800), i * 20, j * 20));
+			switch (i % 5)
+			{
+			case 0:
+				backgroundActorCont[i].emplace_back(
+					std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND_0)
+						, RenderData(0, 0, 1200, 1200), i * 30, j * 30));
+				break;
+			case 1:
+				backgroundActorCont[i].emplace_back(
+					std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND_1)
+						, RenderData(0, 0, 1200, 1200), i * 30, j * 30));
+				break;
+			case 2:
+				backgroundActorCont[i].emplace_back(
+					std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND_2)
+						, RenderData(0, 0, 1200, 1200), i * 30, j * 30));
+				break;
+			case 3:
+				backgroundActorCont[i].emplace_back(
+					std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND_3)
+						, RenderData(0, 0, 1200, 1200), i * 30, j * 30));
+				break;
+			case 4:
+				backgroundActorCont[i].emplace_back(
+					std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BACKGROUND_4)
+						, RenderData(0, 0, 1200, 1200), i * 30, j * 30));
+				break;
+			}
 		}
 	}
 
 	coverUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::COVER_UI), RenderData(800, 0, 200, 800));
-	broadcastAreaUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BROADCAST_UI), RenderData(70, 70, 600, 600, COLOR::_WHITE));
+	broadcastAreaUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BROADCAST_UI), RenderData(0, 0, 800, 800, COLOR::_WHITE));
 	
 	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
 }
@@ -153,10 +178,19 @@ void WGameFramework::RecvLoginOK(char* pBufferStart)
 #endif
 	//if (myClientKey == realKey)
 	//{
-		playerCharacter = std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::PLAYER),
+	if (packet->job == JOB_TYPE::ARCHER)
+		playerCharacter = std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::PLAYER_ARCHER),
 			RenderData(350, 350, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y);
+	else if (packet->job == JOB_TYPE::KNIGHT)
+		playerCharacter = std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::PLAYER_KNIGHT),
+			RenderData(350, 350, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y);
+	else if (packet->job == JOB_TYPE::WITCH)
+		playerCharacter = std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::PLAYER_WITCH),
+			RenderData(350, 350, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y);
+	else
+		std::cout << "뭐여! 나님은 무슨 직업이십니까?" << std::endl;
 
-		UpdateBackgroundActor();
+	UpdateBackgroundActor();
 	//}
 }
 
@@ -172,29 +206,45 @@ void WGameFramework::RecvPutPlayer(char* pBufferStart)
 	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
-		//else
-		//{
-			otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
-			// 안녕! 새로운 플레이어!
-			otherPlayerCont.emplace_back(
-				std::make_pair(realKey, std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::OTHER_PLAYER),
-					RenderData(0, 0, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y)
-				)
-			).second->UpdateRenderData(playerCharacter->GetPosition());
+		{
+		RENDER_MODEL_TYPE tempRenderModelType{};
+		if (packet->job == JOB_TYPE::ARCHER)	tempRenderModelType = RENDER_MODEL_TYPE::OTHER_PLAYER_ARCHER;
+		else if (packet->job == JOB_TYPE::KNIGHT)	tempRenderModelType = RENDER_MODEL_TYPE::OTHER_PLAYER_KNIGHT;
+		else if (packet->job == JOB_TYPE::WITCH)	tempRenderModelType = RENDER_MODEL_TYPE::OTHER_PLAYER_WITCH;
+		else std::cout << "마 그럼 니는 누군디! " << std::endl;
 
-			otherPlayerContLock.unlock(); //------------------------------------------------0
-		//}
+		otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
+		// 안녕! 새로운 플레이어!
+
+		std::cout << "[PUT] 플레이어 (" << packet->key << ") 등장!" << std::endl;
+
+		otherPlayerCont.emplace_back(
+			std::make_pair(realKey, std::make_unique<Pawn>(renderModelManager->GetRenderModel(tempRenderModelType),
+				RenderData(0, 0, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y)
+			)
+		).second->UpdateRenderData(playerCharacter->GetPosition());
+
+		otherPlayerContLock.unlock(); //------------------------------------------------0
+		}
 		break;
 	case OBJECT_TYPE::MONSTER:
+		{
+		RENDER_MODEL_TYPE tempRenderModelType{};
+		if (packet->job == JOB_TYPE::SLIME)	tempRenderModelType = RENDER_MODEL_TYPE::MONSTER_SLIME;
+		else if (packet->job == JOB_TYPE::GOLEM)	tempRenderModelType = RENDER_MODEL_TYPE::MONSTER_GOLME;
+		else if (packet->job == JOB_TYPE::DRAGON)	tempRenderModelType = RENDER_MODEL_TYPE::MONSTER_DRAGON;
+		else std::cout << "마 그럼 니는 누군디! " << std::endl;
+
 		monsterContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
 
 		monsterCont.emplace_back(
-			std::make_pair(realKey, std::make_unique<Pawn>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::MONSTER),
+			std::make_pair(realKey, std::make_unique<Pawn>(renderModelManager->GetRenderModel(tempRenderModelType),
 				RenderData(0, 0, GLOBAL_DEFINE::BLOCK_WIDTH_SIZE, GLOBAL_DEFINE::BLOCK_HEIGHT_SIZE, COLOR::_RED), packet->x, packet->y)
 			)
 		).second->UpdateRenderData(playerCharacter->GetPosition());
 
 		monsterContLock.unlock(); //------------------------------------------------0
+		}
 		break;
 	case OBJECT_TYPE::NPC:
 		std::cout << "야 NPC 없는데 무슨 NPC가 오냐 키값 뭔데임마 " << (int)packet->key << " // "<< std::bitset<32>(packet->key) << " // " << realKey << std::endl;
@@ -216,6 +266,8 @@ void WGameFramework::RecvRemovePlayer(char* pBufferStart)
 	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
+		std::cout << "[Remove] 플레이어 (" << packet->key << ") 안녕!" << std::endl;
+
 		otherPlayerContLock.lock(); //++++++++++++++++++++++++++++++++++++++++++++++++++1
 		// 잘가랏 플레이어!!
 		for (auto iter = otherPlayerCont.begin(); iter != otherPlayerCont.end(); ++iter)
