@@ -16,6 +16,13 @@ namespace PACKET_DATA
 		{
 			memcpy(id, pInID, GLOBAL_DEFINE::ID_MAX_SIZE);
 		}
+
+		SignUp::SignUp(const _CharType* const pInNickname, const _JobType inJob) noexcept:
+			size(sizeof(SignUp)), type(PACKET_TYPE::CLIENT_TO_MAIN::SIGN_UP),
+			id(), job(inJob)
+		{
+			memcpy(id, pInNickname, GLOBAL_DEFINE::ID_MAX_SIZE);
+		}
 	}
 
 	namespace CLIENT_TO_CHAT

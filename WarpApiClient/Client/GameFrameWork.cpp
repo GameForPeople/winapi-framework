@@ -360,6 +360,29 @@ void WGameFramework::RecvChat(char* pBufferStart)
 	//Chat packet(pBufferStart);
 }
 
+void WGameFramework::RecvLoginFail(char* pBufferStart)
+{
+	using namespace PACKET_DATA::MAIN_TO_CLIENT;
+	using namespace BIT_CONVERTER;
+
+	LoginFail* packet = reinterpret_cast<LoginFail *>(pBufferStart);
+	switch (packet->failReason)
+	{
+		// 0이면 없는 계정, 1이면 이미 로그인한 계정, 2이면 만들려고 했는데 이미 있는 계정
+	case 0:
+		std::cout << "해당 닉네임을 가지고 있는 계정이 없습니다. 확인 후 다시 시도하세요. \n";
+		break;
+	case 1:
+		std::cout << "해당 계정은 이미 로그인한 계정입니다. \n";
+		break;
+	case 2:
+		std::cout << "해당 닉네임의 계정이 이미 존재합니다. 다른 닉네임으로 회원가입하세요. \n";
+		break;
+	}
+
+	networkManager->LogInOrSignUpProcess();
+}
+
 void WGameFramework::UpdateOtherObject()
 {
 	for (auto iter = otherPlayerCont.begin(); iter != otherPlayerCont.end(); ++iter)

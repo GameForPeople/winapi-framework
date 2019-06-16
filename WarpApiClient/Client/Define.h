@@ -65,6 +65,7 @@ namespace PACKET_TYPE
 		{
 			MOVE, 	//LEFT, //UP, //RIGHT, //DOWN,
 			LOGIN,
+			SIGN_UP,
 			ENUM_SIZE
 		};
 	}
@@ -168,6 +169,15 @@ namespace PACKET_DATA
 			_CharType id[GLOBAL_DEFINE::ID_MAX_LEN];
 
 			Login(const _CharType* const pInNickname) noexcept;
+		};
+
+		struct SignUp {
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_CharType id[GLOBAL_DEFINE::ID_MAX_LEN];
+			_JobType job;
+
+			SignUp(const _CharType* const pInNickname, const _JobType) noexcept;
 		};
 	}
 

@@ -10,7 +10,7 @@ public:
 	~NetworkManager();
 
 	void SendMoveData(const BYTE inDirection);
-
+	void LogInOrSignUpProcess();
 private:
 	void InitNetwork();
 
