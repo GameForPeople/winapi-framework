@@ -34,7 +34,18 @@ RenderModelManager::RenderModelManager()
 	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::BACKGROUND_3)] = new StretchModel(L"Resource/Image/30X30_Background_3.png");
 	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::BACKGROUND_4)] = new StretchModel(L"Resource/Image/30X30_Background_4.png");
 
-	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::COVER_UI)] = new StretchModel(L"Resource/Image/Image_Cover.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_0)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_0.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_1)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_1.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_2)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_2.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_3)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_3.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_4)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_4.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_5)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_5.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_6)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_6.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_7)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_7.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_8)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_8.png");
+	//renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::NUMBER_9)] = new TransparentModel(L"Resource/Image/Combo_Orange_Yellow_9.png");
+
+	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::COVER_UI)] = new StretchModel(L"Resource/Image/Image_Cover_New.png");
 	renderModelCont[static_cast<BYTE>(RENDER_MODEL_TYPE::BROADCAST_UI)] = new TransparentModel(L"Resource/Image/Image_BroadcastArea_800X800.png");
 
 	assert(

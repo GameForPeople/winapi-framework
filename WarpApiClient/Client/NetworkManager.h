@@ -10,6 +10,9 @@ public:
 	~NetworkManager();
 
 	void SendMoveData(const BYTE inDirection);
+	void SendAttack(const unsigned char inAttackType);
+	void SendItem(const unsigned char inItemType);
+
 	void LogInOrSignUpProcess();
 private:
 	void InitNetwork();
@@ -44,4 +47,6 @@ private:
 
 	char loadedBuf[GLOBAL_DEFINE::MAX_SIZE_OF_RECV];
 	int loadedSize;
+
+public:
 };

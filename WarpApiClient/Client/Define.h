@@ -28,11 +28,31 @@ namespace GLOBAL_DEFINE
 	constexpr USHORT MANAGER_SERVER_PORT = 9002;
 	constexpr USHORT QUERY_SERVER_PORT = 9003;
 
-	constexpr USHORT MAX_HEIGHT = 800;
-	constexpr USHORT MAX_WIDTH = 800;
+	constexpr USHORT MAX_HEIGHT = 300;
+	constexpr USHORT MAX_WIDTH = 300;
 
 	constexpr BYTE ID_MAX_LEN = 10;
 	constexpr BYTE ID_MAX_SIZE = ID_MAX_LEN * 2;
+
+	constexpr BYTE CHAT_MAX_LEN = 50;
+}
+
+namespace STAT_CHANGE
+{
+	enum
+	{
+		HP,
+		MP,
+		LEVEL,
+		EXP,
+		RED_P,
+		BLUE_P,
+		MONEY,
+		MOVE_OK,
+		ATTACK_OK,
+		SKILL_1_OK,
+		SKILL_2_OK
+	};
 }
 
 namespace NETWORK_TYPE
@@ -66,6 +86,9 @@ namespace PACKET_TYPE
 			MOVE, 	//LEFT, //UP, //RIGHT, //DOWN,
 			LOGIN,
 			SIGN_UP,
+			ATTACK,
+			USE_ITEM,
+			CHAT,
 			ENUM_SIZE
 		};
 	}
@@ -90,6 +113,8 @@ namespace PACKET_TYPE
 			LOGIN_FAIL,
 			PUT_PLAYER,
 			REMOVE_PLAYER,
+			CHAT,
+			STAT_CHANGE,
 			ENUM_SIZE
 		};
 	}
@@ -98,8 +123,9 @@ namespace PACKET_TYPE
 	{
 		enum
 		{
-			DEMAND_LOGIN,
-			SAVE_LOCATION,
+			DEMAND_LOGIN = 0,
+			DEMAND_SIGNUP = 1,
+			SAVE_LOCATION = 2,
 			SAVE_USERINFO
 		};
 	}
@@ -110,7 +136,8 @@ namespace PACKET_TYPE
 		{
 			LOGIN_TRUE,
 			LOGIN_FALSE,
-			LOGIN_ALREADY
+			LOGIN_ALREADY,
+			LOGIN_NEW
 		};
 	}
 
@@ -179,6 +206,30 @@ namespace PACKET_DATA
 
 			SignUp(const _CharType* const pInNickname, const _JobType) noexcept;
 		};
+
+		struct Attack {
+			_PacketSizeType size;
+			_PacketTypeType type;
+			unsigned char attackType; //0이면 기본공격, 1이면 스킬1, 2이면 스킬2
+
+			Attack(const unsigned char) noexcept;
+		};
+
+		struct Item {
+			_PacketSizeType size;
+			_PacketTypeType type;
+			unsigned char useItemType;	//0이면 레드포션, 1이면 블루포션
+
+			Item(const unsigned char) noexcept;
+		};
+
+		struct Chat {
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_CharType message[GLOBAL_DEFINE::CHAT_MAX_LEN];
+
+			Chat(_CharType*);
+		};
 	}
 
 	namespace CLIENT_TO_CHAT
@@ -237,7 +288,7 @@ namespace PACKET_DATA
 		{
 			_PacketSizeType size;
 			_PacketTypeType type;
-			const char failReason;
+			const char failReason;	// 0이면 없는 계정, 1이면 이미 로그인한 계정, 2이면 만들려고 했는데 이미 있는 계정
 
 			LoginFail(const char inFailReason) noexcept;
 		};
@@ -273,6 +324,28 @@ namespace PACKET_DATA
 
 			Position(const _KeyType inMovedClientKey, const _PosType inX, const _PosType inY) noexcept;
 		};
+
+		struct Chat
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
+			_CharType message[GLOBAL_DEFINE::CHAT_MAX_LEN];
+
+			Chat(const _KeyType inSenderKey, const _CharType* const pInMessage) noexcept;
+		};
+
+		struct StatChange
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			char changedStatType;
+			// 0 체력, 1 마나, 2 레벨, 3. 경험치, 4. 빨물, 
+			//5.파물, 6.돈, 7. 이동가능여부, 8. 공격가능여부, 9. 스킬1가능여부, 10. 스킬2가능여부
+			int newValue;
+
+			StatChange(char /* STAT_CHANGE */, int) noexcept;
+		};
 	}
 
 	namespace MAIN_TO_QUERY
@@ -286,6 +359,17 @@ namespace PACKET_DATA
 			int		pw;
 
 			DemandLogin(const _KeyType, const char* inId, const int);
+		};
+
+		struct DemandSignUp
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;	// 나중에 반납할 때, 이 키를 알려줘야함.
+			_CharType id[10];
+			_JobType job;
+
+			DemandSignUp(const _KeyType, const char* inId, const _JobType);
 		};
 
 		struct SavePosition
@@ -304,7 +388,7 @@ namespace PACKET_DATA
 			_PacketSizeType size;
 			_PacketTypeType type;
 			// 여기는 단방향성이라 Key가 필요없음
-			int isOut;
+			int isOut;	// 0 로그아웃용, 1 백업용
 			_CharType id[10];
 			_PosType xPos;
 			_PosType yPos;
@@ -376,9 +460,31 @@ namespace PACKET_DATA
 
 			LoginAlready(const _KeyType, const _KeyType) noexcept;
 		};
+
+		struct LoginNew
+		{
+			_PacketSizeType size;
+			_PacketTypeType type;
+			_KeyType key;
+			_JobType job;
+
+			LoginNew(const _KeyType, const _JobType) noexcept;
+		};
 	}
 
 #pragma pack(pop)
+}
+
+namespace DIRECTION
+{
+	enum /* class DIRECTION : BYTE */
+	{
+		LEFT /*= 0*/,
+		UP /*= 1*/,
+		RIGHT /*= 2*/,
+		DOWN /*= 3*/,
+		ENUM_SIZE
+	};
 }
 
 namespace JOB_TYPE
@@ -391,18 +497,6 @@ namespace JOB_TYPE
 		SLIME = 4,
 		GOLEM = 5,
 		DRAGON = 6
-	};
-}
-
-namespace DIRECTION
-{
-	enum /* class DIRECTION : BYTE */
-	{
-		LEFT /*= 0*/,
-		UP /*= 1*/,
-		RIGHT /*= 2*/,
-		DOWN /*= 3*/,
-		ENUM_SIZE
 	};
 }
 

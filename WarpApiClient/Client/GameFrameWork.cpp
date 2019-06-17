@@ -31,6 +31,8 @@ WGameFramework::WGameFramework(const std::string_view& inIPAddress)
 	, broadcastAreaUI()
 	, ipAddress(inIPAddress)
 	, myClientKey()
+	, isLogin(false)
+	, isDeath(false)
 {
 	otherPlayerCont.clear();
 }
@@ -94,6 +96,24 @@ void WGameFramework::Create(HWND hWnd)
 	coverUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::COVER_UI), RenderData(800, 0, 200, 800));
 	broadcastAreaUI = std::make_unique<BaseActor>(renderModelManager->GetRenderModel(RENDER_MODEL_TYPE::BROADCAST_UI), RenderData(0, 0, 800, 800, COLOR::_WHITE));
 	
+	notLoginUI = std::make_unique<CImage>();
+	notLoginUI->Load(L"Resource/Image/Image_NotLogin.png");
+	
+	diedUI = std::make_unique<CImage>();
+	diedUI->Load(L"Resource/Image/Image_Died.png");
+
+	numberUICont.resize(10);
+	numberUICont[0].Load(L"Resource/Image/Combo_Orange_Yellow_0.png");
+	numberUICont[1].Load(L"Resource/Image/Combo_Orange_Yellow_1.png");
+	numberUICont[2].Load(L"Resource/Image/Combo_Orange_Yellow_2.png");
+	numberUICont[3].Load(L"Resource/Image/Combo_Orange_Yellow_3.png");
+	numberUICont[4].Load(L"Resource/Image/Combo_Orange_Yellow_4.png");
+	numberUICont[5].Load(L"Resource/Image/Combo_Orange_Yellow_5.png");
+	numberUICont[6].Load(L"Resource/Image/Combo_Orange_Yellow_6.png");
+	numberUICont[7].Load(L"Resource/Image/Combo_Orange_Yellow_7.png");
+	numberUICont[8].Load(L"Resource/Image/Combo_Orange_Yellow_8.png");
+	numberUICont[9].Load(L"Resource/Image/Combo_Orange_Yellow_9.png");
+
 	networkManager = std::make_unique<NetworkManager>(ipAddress, this);
 }
 
@@ -119,8 +139,84 @@ void WGameFramework::OnDraw(HDC hdc)
 	if(playerCharacter != nullptr) playerCharacter->Render(hdc);
 
 	coverUI->Render(hdc);
-
 	broadcastAreaUI->Render(hdc);
+
+	if (level)
+	{
+		const int sizeBuffer = 35;
+		if(level > 9) numberUICont[level / 10].TransparentBlt(hdc, 900, 400, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[level % 10].TransparentBlt(hdc, 940, 400, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+
+	if (const int sizeBuffer = 20; myExp)
+	{
+		int tempExp = myExp % 1000;
+
+		if (tempExp > 99) numberUICont[tempExp / 100].TransparentBlt(hdc, 900, 460, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (tempExp > 9) numberUICont[(tempExp / 10) % 10].TransparentBlt(hdc, 930, 460, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[tempExp % 10].TransparentBlt(hdc, 960, 460, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 960, 460, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if (const int sizeBuffer = 20; hp)
+	{
+		if (hp > 99) numberUICont[hp / 100].TransparentBlt(hdc, 900, 510, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (hp > 9) numberUICont[(hp / 10) % 10].TransparentBlt(hdc, 930, 510, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[hp % 10].TransparentBlt(hdc, 960, 510, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 960, 510, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if (const int sizeBuffer = 20; mp)
+	{
+		if (mp > 99) numberUICont[mp / 100].TransparentBlt(hdc, 900, 560, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (mp > 9) numberUICont[(mp / 10) % 10].TransparentBlt(hdc, 930, 560, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[mp % 10].TransparentBlt(hdc, 960, 560, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 960, 560, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if (const int sizeBuffer = 20; redCount)
+	{
+		if (redCount > 99) numberUICont[redCount / 100].TransparentBlt(hdc, 900, 610, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (redCount > 9) numberUICont[(redCount / 10) % 10].TransparentBlt(hdc, 930, 610, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[redCount % 10].TransparentBlt(hdc, 960, 610, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 960, 610, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if (const int sizeBuffer = 20; blueCount)
+	{
+		if (blueCount > 99) numberUICont[blueCount / 100].TransparentBlt(hdc, 900, 660, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (blueCount > 9) numberUICont[(blueCount / 10) % 10].TransparentBlt(hdc, 930, 660, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[blueCount % 10].TransparentBlt(hdc, 960, 660, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 960, 660, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if (const int sizeBuffer = 15; money)
+	{
+		if (money > 999) numberUICont[(money / 1000) % 10].TransparentBlt(hdc, 900, 710, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (money > 99) numberUICont[(money / 100) % 10].TransparentBlt(hdc, 920, 710, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (money > 9) numberUICont[(money / 10) % 10].TransparentBlt(hdc, 940, 710, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[money % 10].TransparentBlt(hdc, 960, 710, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 960, 710, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if (const int sizeBuffer = 15; posX)
+	{
+		if (posX > 99) numberUICont[(posX / 100) % 10].TransparentBlt(hdc, 10, 30, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (posX > 9) numberUICont[(posX / 10) % 10].TransparentBlt(hdc, 25, 30, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[posX % 10].TransparentBlt(hdc, 40, 30, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 40, 30, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if (const int sizeBuffer = 15; posY)
+	{
+		if (posY > 99) numberUICont[(posY / 100) % 10].TransparentBlt(hdc, 10, 50, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		if (posY > 9) numberUICont[(posY / 10) % 10].TransparentBlt(hdc, 25, 50, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+		numberUICont[posY % 10].TransparentBlt(hdc, 40, 50, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+	}
+	else numberUICont[0].TransparentBlt(hdc, 40, 50, sizeBuffer, sizeBuffer, COLOR::_WHITE);
+
+	if(!isLogin) notLoginUI->AlphaBlend(hdc, 0, 0, 1000, 835, 0, 0, 1000, 835, 200, 000);
+	if(isDeath) diedUI->AlphaBlend(hdc, 0, 0, 1000, 835, 0, 0, 1000, 835, 200, 000);
 }
 
 void WGameFramework::OnUpdate(const float frameTime)
@@ -142,19 +238,47 @@ void WGameFramework::Mouse(UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-	switch (iMessage)
-	{
+	if (isLogin) {
+		switch (iMessage)
+		{
 		case WM_KEYDOWN:
 			switch (wParam)
 			{
-			case static_cast<WPARAM>(VK_KEY::VK_Q) :
-				SendMessage(m_hWnd, WM_DESTROY, 0, 0);
-				break;
-			case static_cast<WPARAM>(VK_LEFT) :
-			case static_cast<WPARAM>(VK_UP) :
-			case static_cast<WPARAM>(VK_RIGHT) :
-			case static_cast<WPARAM>(VK_DOWN) :
-				networkManager->SendMoveData(static_cast<BYTE>(wParam) - VK_LEFT);
+				case static_cast<WPARAM>(VK_KEY::VK_P) :
+				{
+					SendMessage(m_hWnd, WM_DESTROY, 0, 0);
+					break;
+				}
+				case static_cast<WPARAM>(VK_KEY::VK_A) :
+				{
+					networkManager->SendAttack(0);
+					break;
+				}
+				case static_cast<WPARAM>(VK_KEY::VK_S) :
+				{
+					networkManager->SendAttack(1);
+					break;
+				}
+				case static_cast<WPARAM>(VK_KEY::VK_D) :
+				{
+					networkManager->SendAttack(2);
+					break;
+				}
+				case static_cast<WPARAM>(VK_KEY::VK_Q) :
+				{
+					networkManager->SendItem(0);	//RED P
+					break;
+				}
+				case static_cast<WPARAM>(VK_KEY::VK_W) :
+				{
+					networkManager->SendItem(1);	//Blue P
+					break;
+				}
+				case static_cast<WPARAM>(VK_LEFT) :
+				case static_cast<WPARAM>(VK_UP) : 
+				case static_cast<WPARAM>(VK_RIGHT) :
+				case static_cast<WPARAM>(VK_DOWN) : 
+					networkManager->SendMoveData(static_cast<BYTE>(wParam) - VK_LEFT);
 				break;
 			}
 			break;
@@ -164,6 +288,7 @@ void WGameFramework::KeyBoard(UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 		default:
 			break;
+		}
 	}
 }
 
@@ -190,8 +315,21 @@ void WGameFramework::RecvLoginOK(char* pBufferStart)
 	else
 		std::cout << "뭐여! 나님은 무슨 직업이십니까?" << std::endl;
 
+	level = packet->level;
+	hp = packet->hp;
+	mp = packet->mp;
+	job = packet->job;
+	myExp = packet->exp;
+
+	redCount = packet->redCount;
+	blueCount = packet->blueCount;
+	treeCount = packet->treeCount;
+
+	money = packet->money;
+
 	UpdateBackgroundActor();
-	//}
+
+	isLogin = true;
 }
 
 void WGameFramework::RecvPutPlayer(char* pBufferStart)
@@ -199,10 +337,18 @@ void WGameFramework::RecvPutPlayer(char* pBufferStart)
 	using namespace PACKET_DATA::MAIN_TO_CLIENT;
 	PutPlayer* packet = reinterpret_cast<PutPlayer *>(pBufferStart);
 
+	using namespace BIT_CONVERTER;
+	if (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType == OBJECT_TYPE::PLAYER)
+	{
+		if (myClientKey == realKey)
+		{
+			isDeath = false;
+		}
+	}
+
 #ifdef _DEV_MODE_
 	std::cout << "[RECV] 새로운 캐릭터를 생성합니다. 키값은 : " << (int)packet->id << "위치 x, y는 : " << (int)packet->x << " "<< (int)packet->y <<"\n";
 #endif
-	using namespace BIT_CONVERTER;
 	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
@@ -263,6 +409,23 @@ void WGameFramework::RecvRemovePlayer(char* pBufferStart)
 #ifdef _DEV_MODE_
 	std::cout << "[RECV] 캐릭터를 제거합니다. 키값은 : " << (int)(packet->id) << "\n";
 #endif
+	if (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key);
+		objectType == OBJECT_TYPE::PLAYER)
+	{
+		if (realKey == myClientKey)
+		{
+			otherPlayerContLock.lock();
+			otherPlayerCont.clear();
+			otherPlayerContLock.unlock();
+
+			monsterContLock.lock();
+			monsterCont.clear();
+			monsterContLock.unlock();
+
+			isDeath = true;
+		}
+	}
+
 	switch (auto[objectType, realKey] = BIT_CONVERTER::WhatIsYourTypeAndRealKey(packet->key); objectType)
 	{
 	case OBJECT_TYPE::PLAYER:
@@ -320,6 +483,9 @@ void WGameFramework::RecvPosition(char* pBufferStart)
 #ifdef _DEV_MODE_
 			//std::cout << "내 캐릭터가 이동합니다. 위치 x, y는 : " << packet.x << " " << packet.y << "\n";
 #endif
+			posX = packet->x;
+			posY = packet->y;
+
 			playerCharacter->SetOnlyActorPositionNotUpdateRenderData(std::make_pair(packet->x, packet->y));
 			UpdateOtherObject();
 			UpdateBackgroundActor();
@@ -356,8 +522,10 @@ void WGameFramework::RecvPosition(char* pBufferStart)
 
 void WGameFramework::RecvChat(char* pBufferStart)
 {
-	//using namespace PACKET_DATA::;
-	//Chat packet(pBufferStart);
+	using namespace PACKET_DATA::MAIN_TO_CLIENT;
+	Chat* packet = reinterpret_cast<Chat *>(pBufferStart);
+
+	wprintf(L"%d : %s\n", (unsigned int)packet->key, packet->message);
 }
 
 void WGameFramework::RecvLoginFail(char* pBufferStart)
@@ -381,6 +549,29 @@ void WGameFramework::RecvLoginFail(char* pBufferStart)
 	}
 
 	networkManager->LogInOrSignUpProcess();
+}
+
+void WGameFramework::RecvStatChange(char* pBufferStart)
+{
+	using namespace PACKET_DATA::MAIN_TO_CLIENT;
+	StatChange* packet = reinterpret_cast<StatChange *>(pBufferStart);
+
+	switch (packet->changedStatType)
+	{
+	case STAT_CHANGE::HP: { hp = packet->newValue; break; }
+	case STAT_CHANGE::MP: { mp = packet->newValue; break; }
+	case STAT_CHANGE::LEVEL: { level = packet->newValue; break; }
+	case STAT_CHANGE::EXP: { myExp = packet->newValue; break; }
+	case STAT_CHANGE::RED_P: { redCount = packet->newValue; break; }
+	case STAT_CHANGE::BLUE_P: { blueCount = packet->newValue; break; }
+	case STAT_CHANGE::MONEY: { money = packet->newValue; break; }
+	case STAT_CHANGE::MOVE_OK : { moveOK = packet->newValue; break; }
+	case STAT_CHANGE::ATTACK_OK: { attackOK = packet->newValue; break; }
+	case STAT_CHANGE::SKILL_1_OK: { skill1OK = packet->newValue; break; }
+	case STAT_CHANGE::SKILL_2_OK: { skill2OK = packet->newValue; break; }
+	}
+
+	std::wcout << L"[상태변경] : " << (int)packet->changedStatType << L"이 " << (int)packet->newValue << L"으로 변경되었습니다." << std::endl;
 }
 
 void WGameFramework::UpdateOtherObject()

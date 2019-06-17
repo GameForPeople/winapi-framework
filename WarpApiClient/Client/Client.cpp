@@ -34,6 +34,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// 편한 디버깅 환경을 제공하기 위해, 개발 모드일 때, 콘솔창을 켜줍니다. 
 	//	-> 과제 2 변경사항으로 항상 콘솔창을 켜줍니다.
 #ifdef UNICODE
+	UNICODE_UTIL::SetLocaleToKorean();
 #pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console") 
 #else
 #pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console") 

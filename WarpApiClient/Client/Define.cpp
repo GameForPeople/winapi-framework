@@ -14,14 +14,33 @@ namespace PACKET_DATA
 			size(sizeof(Login)), type(PACKET_TYPE::CLIENT_TO_MAIN::LOGIN),
 			id()
 		{
-			memcpy(id, pInID, GLOBAL_DEFINE::ID_MAX_SIZE);
+			lstrcpynW(id, pInID, GLOBAL_DEFINE::ID_MAX_SIZE);
 		}
 
-		SignUp::SignUp(const _CharType* const pInNickname, const _JobType inJob) noexcept:
+		SignUp::SignUp(const _CharType* const pInNickname, const _JobType inJob) noexcept :
 			size(sizeof(SignUp)), type(PACKET_TYPE::CLIENT_TO_MAIN::SIGN_UP),
 			id(), job(inJob)
 		{
-			memcpy(id, pInNickname, GLOBAL_DEFINE::ID_MAX_SIZE);
+			lstrcpynW(id, pInNickname, GLOBAL_DEFINE::ID_MAX_SIZE);
+		}
+
+		Attack::Attack(const unsigned char attackType) noexcept :
+			size(sizeof(Attack)), type(PACKET_TYPE::CLIENT_TO_MAIN::ATTACK),
+			attackType(attackType)
+		{
+		}
+
+		Item::Item(const unsigned char useItemType) noexcept :
+			size(sizeof(Item)), type(PACKET_TYPE::CLIENT_TO_MAIN::USE_ITEM),
+			useItemType(useItemType)
+		{
+		}
+
+		Chat::Chat(_CharType* pInMessage) :
+			size(sizeof(Chat)), type(PACKET_TYPE::CLIENT_TO_MAIN::CHAT),
+			message()
+		{
+			lstrcpynW(message, pInMessage, GLOBAL_DEFINE::CHAT_MAX_LEN);
 		}
 	}
 
@@ -105,6 +124,20 @@ namespace PACKET_DATA
 			x(inX),
 			y(inY)
 		{}
+
+		Chat::Chat(const _KeyType inSenderKey, const _CharType* const pInMessage) noexcept :
+			size(sizeof(Chat)), type(PACKET_TYPE::MAIN_TO_CLIENT::CHAT),
+			key(inSenderKey),
+			message()
+		{
+			lstrcpynW(message, pInMessage, GLOBAL_DEFINE::CHAT_MAX_LEN);
+		}
+
+		StatChange::StatChange(char /* STAT_CHANGE */ inStatType, int inNewValue) noexcept :
+			size(sizeof(StatChange)), type(PACKET_TYPE::MAIN_TO_CLIENT::STAT_CHANGE),
+			changedStatType(inStatType), newValue(inNewValue)
+		{
+		}
 	}
 
 	namespace MAIN_TO_QUERY
@@ -116,11 +149,18 @@ namespace PACKET_DATA
 			memcpy(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
 		}
 
+		DemandSignUp::DemandSignUp(const _KeyType inKey, const char* inId, const _JobType inJob)
+			: size(sizeof(DemandSignUp)), type(PACKET_TYPE::MAIN_TO_QUERY::DEMAND_SIGNUP),
+			key(inKey), id(), job(inJob)
+		{
+			memcpy(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
+		}
+
 		SavePosition::SavePosition(const _CharType* const inId, const _PosType inXPos, const _PosType inYPos)
 			: size(sizeof(SavePosition)), type(PACKET_TYPE::MAIN_TO_QUERY::SAVE_LOCATION),
 			id(), xPos(inXPos), yPos(inYPos)
 		{
-			memcpy(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
+			lstrcpynW(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
 		}
 
 		SaveUserInfo::SaveUserInfo(const int inIsOut, const _CharType* const inId, const _PosType inXPos, const _PosType inYPos,
@@ -130,7 +170,7 @@ namespace PACKET_DATA
 			isOut(inIsOut), id(), xPos(inXPos), yPos(inYPos), level(inLevel), exp(inExp), job(inJob), hp(inHp), mp(inMp),
 			money(inMoney), redCount(inRedCount), blueCount(inBlueCount), treeCount(inTreeCount)
 		{
-			memcpy(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
+			lstrcpynW(id, inId, GLOBAL_DEFINE::ID_MAX_SIZE);
 		}
 	}
 
@@ -160,6 +200,12 @@ namespace PACKET_DATA
 			size(sizeof(LoginAlready)), type(PACKET_TYPE::QUERY_TO_MAIN::LOGIN_ALREADY),
 			key(inKey),
 			oldKey(oldKey)
+		{}
+
+		LoginNew::LoginNew(const _KeyType inKey, const _JobType inJob) noexcept :
+			size(sizeof(LoginNew)), type(PACKET_TYPE::QUERY_TO_MAIN::LOGIN_NEW),
+			key(inKey),
+			job(inJob)
 		{}
 	}
 }
