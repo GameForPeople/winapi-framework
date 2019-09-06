@@ -74,13 +74,8 @@ void NetworkManager::InitNetwork()
 
 	std::cout << "[CONNECT] 서버에 정상적으로 연결되었습니다." << std::endl;
 
-	std::wcout << L"ID를 입력해주세요. : ";
-	WCHAR tempID[10]{};
-	wscanf(L"%s", tempID);
+	LogInOrSignUpProcess();
 
-	PACKET_DATA::CLIENT_TO_MAIN::Login packet(tempID);
-	SendPacket(reinterpret_cast<char*>(&packet));
-	
 	// 8. 리시브 온!
 	RecvPacket();
 }
@@ -262,8 +257,17 @@ void NetworkManager::ProcessLoadedPacket()
 	case MAIN_TO_CLIENT::POSITION:
 		pGameFramework->RecvPosition(loadedBuf);
 		break;
+	case MAIN_TO_CLIENT::LOGIN_FAIL:
+		pGameFramework->RecvLoginFail(loadedBuf);
+		break;
+	case MAIN_TO_CLIENT::CHAT:
+		pGameFramework->RecvChat(loadedBuf);
+		break;
+	case MAIN_TO_CLIENT::STAT_CHANGE:
+		pGameFramework->RecvStatChange(loadedBuf);
+		break;
 	default:
-		std::cout << "[RECV] 정의되지 않은 프로토콜을 받았습니다. 확인해주세요 \n";
+		std::cout << "[RECV] 정의되지 않은 프로토콜을 받았습니다. 확인해주세요. " << loadedBuf[1] << "\n";
 		break;
 	}
 }
@@ -284,4 +288,63 @@ void NetworkManager::SendMoveData(const BYTE /*DIRECTION*/ inDirection)
 #endif
 	PACKET_DATA::CLIENT_TO_MAIN::Move packet(inDirection);
 	SendPacket(reinterpret_cast<char*>(&packet));
+}
+
+void NetworkManager::SendAttack(const unsigned char inAttackType)
+{
+	PACKET_DATA::CLIENT_TO_MAIN::Attack packet(inAttackType);
+	SendPacket(reinterpret_cast<char*>(&packet));
+}
+
+void NetworkManager::SendItem(const unsigned char inItemType)
+{
+	PACKET_DATA::CLIENT_TO_MAIN::Item packet(inItemType);
+	SendPacket(reinterpret_cast<char*>(&packet));
+}
+
+void NetworkManager::LogInOrSignUpProcess()
+{
+	std::cout << "로그인은 1번, 회원가입은 2번을 입력해주세요 : " << std::endl;
+
+	int tempInputtedCommand{};
+
+	std::cin >> tempInputtedCommand;
+
+	switch (tempInputtedCommand)
+	{
+	case 1:
+	{
+		std::cout << "ID를 입력해주세요 : " << std::endl;
+
+		WCHAR tempID[9]{};
+		wscanf(L"%s", tempID);
+
+		PACKET_DATA::CLIENT_TO_MAIN::Login loginPacket(tempID);
+		SendPacket(reinterpret_cast<char*>(&loginPacket));
+		break;
+	}
+	case 2:
+	{
+		std::cout << "회원가입을 원하시는 ID를 입력해주세요 : " << std::endl;
+
+		WCHAR tempID[9]{};
+		wscanf(L"%s", tempID);
+
+		std::cout << "원하시는 직업을 선택해주세요. \n   1. 기사 2. 궁수 3. 마녀" << std::endl;
+		int tempInputtedJob{};
+		std::cin >> tempInputtedJob;
+
+		if (tempInputtedJob > 0 && tempInputtedJob < 4)
+		{
+			PACKET_DATA::CLIENT_TO_MAIN::SignUp signUpPacket(tempID, tempInputtedJob);
+			SendPacket(reinterpret_cast<char*>(&signUpPacket));
+		}
+		else
+		{
+			std::cout << "그런직업 없어요! 잘가요!" << std::endl;
+			throw ERROR;
+		}
+		break;
+	}
+	}
 }
